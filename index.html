@@ -26,6 +26,7 @@
       </a>
       <nav class="header-links" aria-label="Primary navigation">
         <a class="header-link" href="#games">Games</a>
+        <a class="header-link" href="#utilities">Utilities</a>
         <a class="header-link" href="#about">Our idea <span aria-hidden="true">↗</span></a>
         <a class="header-link" href="#contact">Contact</a>
       </nav>
@@ -63,22 +64,60 @@
           <h2 id="games-title">Take a quick <span>break.</span></h2>
           <p>Small games for a little more play.</p>
         </div>
-        <a class="game-card" href="games/bird_hop.html">
-          <div class="game-art" aria-hidden="true">
-            <span class="game-cloud cloud-one"></span>
-            <span class="game-cloud cloud-two"></span>
-            <span class="game-bird">🐤</span>
-            <span class="game-pipe pipe-one"></span>
-            <span class="game-pipe pipe-two"></span>
-          </div>
-          <div class="game-info">
-            <div>
-              <span class="game-type">ARCADE</span>
-              <h3>Bird Hop</h3>
+        <div class="games-list">
+          <a class="game-card" href="games/bird_hop.html">
+            <div class="game-art" aria-hidden="true">
+              <span class="game-cloud cloud-one"></span>
+              <span class="game-cloud cloud-two"></span>
+              <span class="game-bird">🐤</span>
+              <span class="game-pipe pipe-one"></span>
+              <span class="game-pipe pipe-two"></span>
             </div>
-            <span class="game-arrow" aria-hidden="true">↗</span>
-          </div>
-        </a>
+            <div class="game-info">
+              <div>
+                <span class="game-type">ARCADE</span>
+                <h3>Bird Hop</h3>
+              </div>
+              <span class="game-arrow" aria-hidden="true">↗</span>
+            </div>
+          </a>
+          <a class="game-card" href="games/2048.html">
+            <div class="game-art game-art-2048" aria-hidden="true">
+              <div class="tile-preview">
+                <span>2</span><span>4</span><span>8</span><span>16</span>
+              </div>
+            </div>
+            <div class="game-info">
+              <div>
+                <span class="game-type">PUZZLE</span>
+                <h3>2048</h3>
+              </div>
+              <span class="game-arrow" aria-hidden="true">↗</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <section class="games" id="utilities" aria-labelledby="utilities-title">
+        <div class="section-label"><span>03</span> UTILITIES</div>
+        <div class="games-heading">
+          <h2 id="utilities-title">A little <span>decision helper.</span></h2>
+          <p>Let a coin make the call.</p>
+        </div>
+        <div class="games-list utility-list">
+          <a class="game-card" href="utilities/coin_flip.html">
+            <div class="game-art game-art-coin" aria-hidden="true">
+              <span class="coin-preview">H</span>
+            </div>
+            <div class="game-info">
+              <div>
+                <span class="game-type">UTILITY</span>
+                <h3>Coin Flip</h3>
+              </div>
+              <span class="game-arrow" aria-hidden="true">↗</span>
+            </div>
+          </a>
+        </div>
       </section>
 
       <section class="about" id="about" aria-labelledby="about-title">
@@ -98,7 +137,7 @@
       </section>
 
       <section class="about" id="contact" aria-labelledby="contact-title">
-        <div class="section-label"><span>03</span> CONTACT</div>
+        <div class="section-label"><span>04</span> CONTACT</div>
         <div class="about-copy">
           <h2 id="contact-title">Let’s <span>connect.</span></h2>
           <p>
