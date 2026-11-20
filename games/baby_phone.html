@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fff0b5">
+    <title>Baby Phone — FreeGroup</title>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: system-ui, sans-serif;
+        color: #55483f;
+        background: #fff8e6;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        display: grid;
+        min-height: 100vh;
+        margin: 0;
+        padding: 18px 14px 24px;
+        place-items: center;
+        background:
+          radial-gradient(ellipse at 18% 18%, #ffe1de 0, transparent 30%),
+          radial-gradient(ellipse at 86% 85%, #cfedeb 0, transparent 34%),
+          #fff8e6;
+      }
+
+      main {
+        width: min(100%, 390px);
+      }
+
+      button,
+      a {
+        font: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .topbar {
+        display: flex;
+        min-height: 46px;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 2px 12px;
+      }
+
+      .home-link {
+        color: #65584e;
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      .sound-toggle {
+        min-height: 44px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 22px;
+        background: #ffffffbd;
+        color: #65584e;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+
+      .toy {
+        position: relative;
+        padding: 20px;
+        border: 5px solid #e89556;
+        border-radius: 38px;
+        background: linear-gradient(145deg, #ffe27c, #ffd25e);
+        box-shadow: 0 12px 0 #d98349, 0 20px 34px #925a392b, inset 0 2px 0 #fff0a8;
+      }
+
+      .toy::before,
+      .toy::after {
+        position: absolute;
+        top: 21px;
+        width: 10px;
+        height: 48px;
+        border-radius: 8px;
+        background: #f5ae69;
+        content: "";
+      }
+
+      .toy::before {
+        left: -13px;
+      }
+
+      .toy::after {
+        right: -13px;
+      }
+
+      .screen {
+        display: flex;
+        min-height: 130px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-bottom: 16px;
+        border: 4px solid #81c7bb;
+        border-radius: 19px;
+        background: linear-gradient(145deg, #c9f0da, #a4e1d5);
+        box-shadow: inset 0 3px 8px #477d6226;
+      }
+
+      .screen-label {
+        margin-bottom: 2px;
+        color: #4a8173;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 1.6px;
+      }
+
+      .avatar {
+        font-size: 44px;
+        line-height: 1;
+        transition: transform 180ms ease;
+      }
+
+      .avatar.bounce {
+        animation: bounce 420ms ease;
+      }
+
+      .screen-message {
+        min-height: 21px;
+        margin: 5px 0 0;
+        color: #35685b;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .keypad {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 9px;
+      }
+
+      .key {
+        display: flex;
+        min-height: 62px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 17px;
+        background: #fffaf0;
+        box-shadow: 0 4px 0 #e7c977;
+        color: #6a594e;
+        cursor: pointer;
+        touch-action: manipulation;
+        transition: transform 100ms ease, box-shadow 100ms ease;
+      }
+
+      .key:active {
+        box-shadow: 0 1px 0 #e7c977;
+        transform: translateY(3px) scale(.97);
+      }
+
+      .key-number {
+        font-size: 24px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .key-letters {
+        min-height: 10px;
+        margin-top: 3px;
+        color: #9c8979;
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: 1px;
+      }
+
+      .key-special {
+        font-size: 24px;
+      }
+
+      .key-music {
+        background: #bce8f4;
+        box-shadow: 0 4px 0 #85c9d9;
+      }
+
+      .key-call {
+        background: #a4d76e;
+        box-shadow: 0 4px 0 #7fb34e;
+      }
+
+      .parent-note {
+        margin: 18px 8px 0;
+        color: #7b7066;
+        font-size: 11px;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      .home-link:focus-visible,
+      button:focus-visible {
+        outline: 3px solid #477d62;
+        outline-offset: 3px;
+      }
+
+      @keyframes bounce {
+        50% { transform: scale(1.2) rotate(7deg); }
+      }
+
+      @media (max-width: 360px) {
+        .toy {
+          padding: 16px;
+          border-radius: 32px;
+        }
+
+        .keypad {
+          gap: 7px;
+        }
+
+        .key {
+          min-height: 56px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: .01ms !important;
+          transition-duration: .01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="topbar">
+        <a class="home-link" href="../index.html">← FreeGroup</a>
+        <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true">🔊 Sound on</button>
+      </div>
+
+      <section class="toy" aria-label="Pretend play phone">
+        <div class="screen">
+          <span class="screen-label">MY LITTLE PHONE</span>
+          <span class="avatar" id="avatar" aria-hidden="true">🐻</span>
+          <p class="screen-message" id="message" aria-live="polite">Hi, friend!</p>
+        </div>
+
+        <div class="keypad" aria-label="Phone buttons">
+          <button class="key" type="button" data-number="1" aria-label="Number 1">
+            <span class="key-number">1</span><span class="key-letters"></span>
+          </button>
+          <button class="key" type="button" data-number="2" aria-label="Number 2">
+            <span class="key-number">2</span><span class="key-letters">ABC</span>
+          </button>
+          <button class="key" type="button" data-number="3" aria-label="Number 3">
+            <span class="key-number">3</span><span class="key-letters">DEF</span>
+          </button>
+          <button class="key" type="button" data-number="4" aria-label="Number 4">
+            <span class="key-number">4</span><span class="key-letters">GHI</span>
+          </button>
+          <button class="key" type="button" data-number="5" aria-label="Number 5">
+            <span class="key-number">5</span><span class="key-letters">JKL</span>
+          </button>
+          <button class="key" type="button" data-number="6" aria-label="Number 6">
+            <span class="key-number">6</span><span class="key-letters">MNO</span>
+          </button>
+          <button class="key" type="button" data-number="7" aria-label="Number 7">
+            <span class="key-number">7</span><span class="key-letters">PQRS</span>
+          </button>
+          <button class="key" type="button" data-number="8" aria-label="Number 8">
+            <span class="key-number">8</span><span class="key-letters">TUV</span>
+          </button>
+          <button class="key" type="button" data-number="9" aria-label="Number 9">
+            <span class="key-number">9</span><span class="key-letters">WXYZ</span>
+          </button>
+          <button class="key key-music key-special" id="music" type="button" aria-label="Play a little tune">🎵</button>
+          <button class="key" type="button" data-number="0" aria-label="Number 0">
+            <span class="key-number">0</span><span class="key-letters"></span>
+          </button>
+          <button class="key key-call key-special" id="call" type="button" aria-label="Pretend to call a friend">📞</button>
+        </div>
+      </section>
+
+      <p class="parent-note">A little pretend play. Buttons make gentle sounds—no real calls, and no numbers are saved.</p>
+    </main>
+
+    <script>
+      const avatar = document.getElementById("avatar");
+      const message = document.getElementById("message");
+      const soundToggle = document.getElementById("sound-toggle");
+      const friends = [
+        ["🐻", "Bear says hello!"],
+        ["🐸", "Frog says hello!"],
+        ["🐱", "Cat says hello!"],
+        ["🐰", "Bunny says hello!"],
+        ["🐼", "Panda says hello!"]
+      ];
+      const numberNotes = [261.63, 293.66, 329.63, 349.23, 392, 440, 493.88, 523.25, 587.33, 659.25];
+      let soundOn = true;
+      let audioContext;
+
+      function playTone(frequency, delay = 0, length = 0.16) {
+        if (!soundOn) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        audioContext ||= new AudioContext();
+        if (audioContext.state === "suspended") audioContext.resume();
+
+        const start = audioContext.currentTime + delay;
+        const oscillator = audioContext.createOscillator();
+        const volume = audioContext.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(frequency, start);
+        volume.gain.setValueAtTime(0.0001, start);
+        volume.gain.exponentialRampToValueAtTime(0.045, start + 0.025);
+        volume.gain.exponentialRampToValueAtTime(0.0001, start + length);
+        oscillator.connect(volume);
+        volume.connect(audioContext.destination);
+        oscillator.start(start);
+        oscillator.stop(start + length + 0.02);
+      }
+
+      function showFace(face, words) {
+        avatar.textContent = face;
+        message.textContent = words;
+        avatar.classList.remove("bounce");
+        void avatar.offsetWidth;
+        avatar.classList.add("bounce");
+      }
+
+      document.querySelectorAll("[data-number]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const number = Number(button.dataset.number);
+          showFace("😊", `${number}!`);
+          playTone(numberNotes[number]);
+        });
+      });
+
+      document.getElementById("call").addEventListener("click", () => {
+        const [face, words] = friends[Math.floor(Math.random() * friends.length)];
+        showFace(face, words);
+        [523.25, 659.25, 783.99].forEach((note, index) => playTone(note, index * 0.14));
+      });
+
+      document.getElementById("music").addEventListener("click", () => {
+        showFace("🎵", "La, la, la!");
+        [392, 493.88, 587.33, 493.88, 392].forEach((note, index) => playTone(note, index * 0.2, 0.22));
+      });
+
+      soundToggle.addEventListener("click", () => {
+        soundOn = !soundOn;
+        soundToggle.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+        soundToggle.setAttribute("aria-pressed", String(soundOn));
+      });
+    </script>
+  </body>
+</html>
