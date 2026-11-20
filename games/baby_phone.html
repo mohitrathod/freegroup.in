@@ -326,8 +326,23 @@
         text-align: center;
       }
 
-      .product-phone.flash {
-        animation: product-flash 520ms ease-out;
+      .side-led {
+        position: absolute;
+        z-index: 4;
+        top: 4.5%;
+        right: 7%;
+        width: clamp(9px, 2.8%, 12px);
+        aspect-ratio: 1;
+        border: 2px solid #3c8a5a;
+        border-radius: 50%;
+        background: #235d3d;
+        box-shadow: inset 0 1px 2px #0008;
+      }
+
+      .side-led.lit {
+        border-color: #a8ffc6;
+        background: #6cff9a;
+        box-shadow: 0 0 10px #6cff9a, 0 0 22px #6cff9a99, inset 0 1px 2px #fff9;
       }
 
       .mode-note {
@@ -354,12 +369,6 @@
 
       @keyframes key-tap {
         45% { transform: translateY(3px) scale(.9); }
-      }
-
-      @keyframes product-flash {
-        45% {
-          filter: drop-shadow(0 0 20px var(--flash-color)) brightness(1.12);
-        }
       }
 
       @media (max-width: 360px) {
@@ -417,6 +426,7 @@
 
       <section class="toy" id="toy" aria-label="Pretend play phone">
         <div class="product-phone" id="product-phone">
+          <span class="side-led" id="side-led" aria-hidden="true"></span>
           <div class="phone-shell">
             <div class="phone-screen">
               <div class="phone-display" role="group" aria-label="Phone display">
@@ -480,7 +490,6 @@
     </main>
 
     <script>
-      const productPhone = document.getElementById("product-phone");
       const avatar = document.getElementById("avatar");
       const message = document.getElementById("message");
       const modeLabel = document.getElementById("mode-label");
@@ -630,72 +639,25 @@
       };
       const midiFrequency = (note) => 440 * Math.pow(2, (note - 69) / 12);
       const numberMidiNotes = [60, 62, 64, 65, 67, 69, 71, 72, 74];
-      function makeTune(song, beat = .22, repeats = 2) {
-        const notes = [];
-        const chordRoots = [60, 65, 67, 60, 62, 67, 65, 60];
-        const thirds = { 0: 4, 2: 3, 4: 3, 5: 4, 7: 4, 9: 3, 11: 3 };
-        for (let repeat = 0; repeat < repeats; repeat++) {
-          const mix = repeat === 0 ? .82 : 1;
-          const add = (pitch, time, length, waveform, level, instrument) => {
-            notes.push([midiFrequency(pitch), time, length, waveform, level * mix, instrument]);
-          };
-          const offset = repeat * (song.notes.length + 2) * beat;
-          song.notes.forEach((note, index) => {
-            if (note !== null) {
-              const time = offset + index * beat;
-              add(note, time, beat * .84, "triangle", .4, "lead");
-              if (index % 4 === 0) {
-                const harmony = note + (thirds[note % 12] || 3);
-                add(harmony, time + beat * .12, beat * .68, "sine", .095, "flute");
-              }
-            }
-          });
-
-          const measures = Math.ceil(song.notes.length / 8);
-          for (let measure = 0; measure < measures; measure++) {
-            const root = chordRoots[measure % chordRoots.length];
-            const chord = [root, root + (root === 62 ? 3 : 4), root + 7];
-            const barStart = offset + measure * 8 * beat;
-
-            chord.forEach((note) => {
-              add(note, barStart, beat * 7.7, "sine", .035, "strings");
-            });
-
-            for (let step = 0; step < 8; step += 2) {
-              const time = barStart + step * beat;
-              const chordTone = chord[(step / 2 + measure) % chord.length] + 12;
-              add(chordTone, time, beat * .72, "triangle", .085, "pluck");
-              add(chordTone + 12, time + beat * .12, beat * .62, "sine", .06, "bell");
-              if (step === 0 || step === 4) {
-                chord.forEach((note) => add(note, time, beat * .58, "sine", .055, "piano"));
-              }
-              const drum = step === 0 ? "kick" : step === 4 ? "snare" : "hat";
-              notes.push([0, time, .11, "sine", (step === 0 ? .105 : .045) * mix, drum]);
-            }
-
-            [0, 4].forEach((step) => {
-              const bassNote = Math.max(36, root - 12 + (step === 4 ? 7 : 0));
-              add(bassNote, barStart + step * beat, beat * 1.7, "sine", .22, "bass");
-            });
-
-            if (measure === measures - 1) {
-              for (let step = 5; step < 8; step++) {
-                notes.push([0, barStart + step * beat, .11, "sine", .035 * mix, "snare"]);
-              }
-              notes.push([0, barStart + 7 * beat, .55, "sine", .055 * mix, "crash"]);
-            }
-          }
-        }
-        return notes;
-      }
+      const tuneFiles = {
+        "Twinkle Twinkle": "twinkle",
+        "Mary Had a Little Lamb": "mary",
+        "Row Your Boat": "row",
+        "London Bridge": "london",
+        "Baa Baa Black Sheep": "baa-baa",
+        "Old MacDonald Had a Farm": "old-macdonald",
+        "Frere Jacques": "frere-jacques",
+        "Three Blind Mice": "three-blind-mice",
+        "Humpty Dumpty": "humpty-dumpty",
+        "The More We Get Together": "together"
+      };
       const modes = {
         melody: () => {
           const song = nurseryTunes[Math.floor(Math.random() * nurseryTunes.length)];
-          return { face: "🎼", text: song.title, color: "#f6b6dc", notes: makeTune(song) };
+          return { face: "🎼", text: song.title, color: "#f6b6dc", audio: tuneFiles[song.title] };
         },
         abc: () => ({
-          face: "🔤", text: "A, B, C!", color: "#a9d8fa",
-          notes: makeTune({ notes: [60, 62, 64, 65, 67, 69, 71, 72] }, .23, 1)
+          face: "🔤", text: "A, B, C!", color: "#a9d8fa", audio: "abc"
         }),
         animals: () => {
           const [face, text, note] = animals[Math.floor(Math.random() * animals.length)];
@@ -725,7 +687,7 @@
         }),
         music: () => {
           const song = nurseryTunes[Math.floor(Math.random() * nurseryTunes.length)];
-          return { face: "🎵", text: song.title, color: "#b5d9fa", notes: makeTune(song, .2) };
+          return { face: "🎵", text: song.title, color: "#b5d9fa", audio: tuneFiles[song.title], rate: 1.1 };
         },
         weather: () => {
           const weather = [
@@ -805,8 +767,31 @@
       let masterGain;
       const activeVoices = new Set();
       let audioUnavailable = false;
+      const sideLed = document.getElementById("side-led");
+      let activeTune = null;
+      let ledTimer;
+
+      function flashLed() {
+        sideLed.classList.add("lit");
+        window.clearTimeout(ledTimer);
+        ledTimer = window.setTimeout(() => sideLed.classList.remove("lit"), 220);
+      }
+
+      function stopTune() {
+        if (!activeTune) return;
+        activeTune.pause();
+        activeTune = null;
+      }
+
+      function playTune(name, rate = 1) {
+        stopTune();
+        activeTune = new Audio(`assets/${name}.wav`);
+        activeTune.playbackRate = rate;
+        activeTune.play().catch(() => {});
+      }
 
       function stopSounds() {
+        stopTune();
         if (!audioContext) return;
         const now = audioContext.currentTime;
         activeVoices.forEach(({ sources, gain }) => {
@@ -983,19 +968,20 @@
         stopSounds();
         avatar.textContent = response.face;
         message.textContent = response.text;
-        productPhone.style.setProperty("--flash-color", response.color);
-        productPhone.classList.remove("flash");
         avatar.classList.remove("bounce");
-        void productPhone.offsetWidth;
         void avatar.offsetWidth;
-        productPhone.classList.add("flash");
         avatar.classList.add("bounce");
+        if (response.audio) {
+          playTune(response.audio, response.rate);
+          return;
+        }
         response.notes.forEach(([frequency, delay, length, waveform, level, instrument]) => {
           playTone(frequency, delay, length, waveform, level, instrument);
         });
       }
 
       function animateButton(button) {
+        flashLed();
         button.classList.remove("pressed");
         void button.offsetWidth;
         button.classList.add("pressed");
@@ -1048,7 +1034,7 @@
             face: togetherSong.icon,
             text: togetherSong.title,
             color: "#f6b6dc",
-            notes: makeTune(togetherSong)
+            audio: "together"
           });
           return;
         }
@@ -1072,7 +1058,7 @@
         message.hidden = false;
         if (key.type === "song") {
           const song = nurseryTunes[key.index];
-          playResponse({ face: song.icon, text: song.title, color: "#f6b6dc", notes: makeTune(song) });
+          playResponse({ face: song.icon, text: song.title, color: "#f6b6dc", audio: tuneFiles[song.title] });
           return;
         }
         if (key.type === "number") {
