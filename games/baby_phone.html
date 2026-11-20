@@ -21,8 +21,9 @@
       body {
         display: grid;
         min-height: 100vh;
+        min-height: 100dvh;
         margin: 0;
-        padding: 18px 14px 24px;
+        padding: 10px 10px max(10px, env(safe-area-inset-bottom));
         place-items: center;
         background:
           radial-gradient(ellipse at 18% 18%, #ffe1de 0, transparent 30%),
@@ -31,7 +32,7 @@
       }
 
       main {
-        width: min(100%, 390px);
+        width: min(calc(100vw - 20px), 390px);
       }
 
       button,
@@ -55,55 +56,50 @@
         text-decoration: none;
       }
 
-      .sound-toggle {
-        min-height: 44px;
-        padding: 0 14px;
-        border: 0;
-        border-radius: 22px;
-        background: #ffffffbd;
-        color: #65584e;
-        font-size: 12px;
-        font-weight: 800;
-        cursor: pointer;
-        touch-action: manipulation;
-      }
-
       .toy {
+        padding: 4px 0 8px;
+      }
+
+      .product-phone {
         position: relative;
-        padding: 20px;
-        border: 5px solid #e89556;
-        border-radius: 38px;
-        background: linear-gradient(145deg, #ffe27c, #ffd25e);
-        box-shadow: 0 12px 0 #d98349, 0 20px 34px #925a392b, inset 0 2px 0 #fff0a8;
+        width: min(
+          calc(100vw - 20px),
+          calc((100dvh - 104px) * .65),
+          390px
+        );
+        aspect-ratio: 0.65;
+        margin: 0 auto;
+        filter: drop-shadow(0 12px 14px #4c526036);
       }
 
-      .toy::before,
-      .toy::after {
+      .phone-shell {
         position: absolute;
-        top: 21px;
-        width: 10px;
-        height: 48px;
-        border-radius: 8px;
-        background: #f5ae69;
-        content: "";
+        z-index: 1;
+        inset: 0 0 2%;
+        border: 5px solid #e89556;
+        border-radius: 11% / 7%;
+        background: linear-gradient(145deg, #ffe27c, #ffd25e);
+        box-shadow: 0 10px 0 #d98349, 0 18px 28px #925a392b, inset 0 2px 0 #fff0a8;
       }
 
-      .toy::before {
-        left: -13px;
+      .phone-screen {
+        position: absolute;
+        inset: 5% 5% 5%;
+        border-radius: 8% / 5%;
+        background: #ffe27c;
       }
 
-      .toy::after {
-        right: -13px;
-      }
-
-      .screen {
+      .phone-display {
+        position: absolute;
+        top: 3%;
+        right: 0;
+        left: 0;
         display: flex;
-        min-height: 130px;
+        height: 24%;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        margin-bottom: 16px;
         border: 4px solid #81c7bb;
         border-radius: 19px;
         background: linear-gradient(145deg, #c9f0da, #a4e1d5);
@@ -111,17 +107,15 @@
       }
 
       .screen-label {
-        margin-bottom: 2px;
         color: #4a8173;
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 900;
         letter-spacing: 1.6px;
       }
 
       .avatar {
-        font-size: 44px;
+        font-size: 42px;
         line-height: 1;
-        transition: transform 180ms ease;
       }
 
       .avatar.bounce {
@@ -129,79 +123,224 @@
       }
 
       .screen-message {
-        min-height: 21px;
-        margin: 5px 0 0;
+        min-height: 20px;
+        max-width: 100%;
+        margin: 2px 4px 0;
         color: #35685b;
         font-size: 14px;
         font-weight: 900;
-      }
-
-      .keypad {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 9px;
-      }
-
-      .key {
-        display: flex;
-        min-height: 62px;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border: 0;
-        border-radius: 17px;
-        background: #fffaf0;
-        box-shadow: 0 4px 0 #e7c977;
-        color: #6a594e;
-        cursor: pointer;
-        touch-action: manipulation;
-        transition: transform 100ms ease, box-shadow 100ms ease;
-      }
-
-      .key:active {
-        box-shadow: 0 1px 0 #e7c977;
-        transform: translateY(3px) scale(.97);
-      }
-
-      .key-number {
-        font-size: 24px;
-        font-weight: 900;
-        line-height: 1;
-      }
-
-      .key-letters {
-        min-height: 10px;
-        margin-top: 3px;
-        color: #9c8979;
-        font-size: 8px;
-        font-weight: 900;
-        letter-spacing: 1px;
-      }
-
-      .key-special {
-        font-size: 24px;
-      }
-
-      .key-music {
-        background: #bce8f4;
-        box-shadow: 0 4px 0 #85c9d9;
-      }
-
-      .key-call {
-        background: #a4d76e;
-        box-shadow: 0 4px 0 #7fb34e;
-      }
-
-      .parent-note {
-        margin: 18px 8px 0;
-        color: #7b7066;
-        font-size: 11px;
-        line-height: 1.5;
+        line-height: 1.15;
         text-align: center;
       }
 
-      .home-link:focus-visible,
-      button:focus-visible {
+      .mode-functions {
+        width: 96%;
+        margin-top: 6px;
+        color: #35685b;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.4;
+        text-align: center;
+        white-space: pre-line;
+      }
+
+      .mode-functions[hidden] {
+        display: none;
+      }
+
+      .phone-logo {
+        position: absolute;
+        top: 30%;
+        left: 40%;
+        display: grid;
+        width: 20%;
+        height: 7%;
+        place-items: center;
+        border: 2px solid #e8c15a;
+        border-radius: 999px;
+        background: linear-gradient(#fff5bd, #ffe27c);
+        box-shadow: 0 3px 0 #d2a84e, inset 0 2px 2px #fff9d8;
+        color: #987b34;
+        font-size: 10px;
+        font-weight: 900;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+
+      .phone-logo:active {
+        box-shadow: 0 1px 0 #d2a84e;
+        transform: translateY(2px);
+      }
+
+      .phone-logo.pressed {
+        animation: key-tap 260ms ease-out;
+      }
+
+      .nokia-actions {
+        position: absolute;
+        z-index: 3;
+        top: 32%;
+        right: 11%;
+        left: 11%;
+        display: flex;
+        justify-content: space-between;
+        pointer-events: none;
+      }
+
+      .nokia-action {
+        display: grid;
+        width: 21%;
+        height: 7%;
+        min-height: 30px;
+        place-items: center;
+        border: 3px solid #f4d987;
+        border-radius: 999px;
+        box-shadow: 0 4px 0 #cf9d52, inset 0 2px 2px #ffffff80;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 900;
+        line-height: 1;
+        cursor: pointer;
+        pointer-events: auto;
+        touch-action: manipulation;
+      }
+
+      .nokia-action.call {
+        background: linear-gradient(#75cf72, #3c9d4b);
+      }
+
+      .nokia-action.end {
+        background: linear-gradient(#f26c62, #b93d42);
+      }
+
+      .nokia-action:active,
+      .nokia-action.pressed {
+        box-shadow: 0 1px 0 #cf9d52;
+        transform: translateY(3px);
+      }
+
+      .nokia-action:focus-visible {
+        outline: 3px solid #477d62;
+        outline-offset: 3px;
+      }
+
+      .phone-keypad {
+        position: absolute;
+        z-index: 2;
+        top: 40%;
+        right: 4%;
+        bottom: 2%;
+        left: 4%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: repeat(4, minmax(0, 1fr));
+        column-gap: clamp(8px, 2vw, 14px);
+        row-gap: clamp(8px, 1.5vh, 12px);
+        padding: 6px;
+        border: 2px solid #efcf7b;
+        border-radius: 18px;
+        background: #f8d96c55;
+      }
+
+      .phone-speaker {
+        position: absolute;
+        top: 2%;
+        left: 44%;
+        display: flex;
+        width: 12%;
+        justify-content: center;
+        gap: 4px;
+      }
+
+      .phone-speaker i {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #d3a344;
+        box-shadow: 0 1px 0 #b48039;
+      }
+
+      .phone-key {
+        display: flex;
+        min-width: 0;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #625e51;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+
+      .key-disc {
+        display: grid;
+        width: auto;
+        height: 100%;
+        max-width: 100%;
+        aspect-ratio: 1;
+        place-items: center;
+        border: 0;
+        border-radius: 15px;
+        background: #fffaf0;
+        box-shadow: 0 4px 0 #e7c977;
+        font-size: clamp(17px, 5.2vw, 24px);
+        line-height: 1;
+        transition: transform 110ms ease, box-shadow 110ms ease;
+      }
+
+      .phone-key:nth-child(3n + 1) .key-disc { background: #bce8f4; box-shadow: 0 4px 0 #85c9d9; }
+      .phone-key:nth-child(3n + 2) .key-disc { background: #fff3dc; box-shadow: 0 4px 0 #e7c977; }
+      .phone-key:nth-child(3n) .key-disc { background: #a4d76e; box-shadow: 0 4px 0 #7fb34e; }
+
+      .phone-key:active .key-disc {
+        box-shadow: 0 1px 0 #e7c977;
+        transform: translateY(3px) scale(.92);
+      }
+
+      .phone-key.pressed .key-disc {
+        animation: key-tap 260ms ease-out;
+      }
+
+      .key-number {
+        display: none;
+      }
+
+      .parent-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 14px;
+      }
+
+      .volume-hint {
+        color: #4c642b;
+        font-size: 10px;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .product-phone.flash {
+        animation: product-flash 520ms ease-out;
+      }
+
+      .mode-note {
+        margin: 0 2px 0 0;
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: #ffffffc9;
+        color: #4c642b;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .04em;
+      }
+
+      .phone-key:focus-visible .key-disc,
+      .phone-logo:focus-visible,
+      .home-link:focus-visible {
         outline: 3px solid #477d62;
         outline-offset: 3px;
       }
@@ -210,19 +349,50 @@
         50% { transform: scale(1.2) rotate(7deg); }
       }
 
+      @keyframes key-tap {
+        45% { transform: translateY(3px) scale(.9); }
+      }
+
+      @keyframes product-flash {
+        45% {
+          filter: drop-shadow(0 0 20px var(--flash-color)) brightness(1.12);
+        }
+      }
+
       @media (max-width: 360px) {
-        .toy {
-          padding: 16px;
-          border-radius: 32px;
+        .topbar {
+          min-height: 38px;
+          margin-bottom: 6px;
         }
 
-        .keypad {
-          gap: 7px;
+        .phone-keypad {
+          top: 40%;
+          right: 3%;
+          bottom: 2%;
+          left: 3%;
+          column-gap: 8px;
+          row-gap: 7px;
+          padding: 5px;
         }
 
-        .key {
-          min-height: 56px;
+        .phone-key {
+          width: 100%;
+          height: 100%;
         }
+
+        .key-disc {
+          height: 100%;
+          box-shadow: 0 3px 0 #e7c977;
+        }
+
+        .product-phone {
+          width: min(
+            calc(100vw - 16px),
+            calc((100dvh - 92px) * .65),
+            330px
+          );
+        }
+
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -239,123 +409,686 @@
     <main>
       <div class="topbar">
         <a class="home-link" href="../index.html">← FreeGroup</a>
-        <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true">🔊 Sound on</button>
+        <span class="mode-note">MODE SWITCH</span>
       </div>
 
-      <section class="toy" aria-label="Pretend play phone">
-        <div class="screen">
-          <span class="screen-label">MY LITTLE PHONE</span>
-          <span class="avatar" id="avatar" aria-hidden="true">🐻</span>
-          <p class="screen-message" id="message" aria-live="polite">Hi, friend!</p>
+      <section class="toy" id="toy" aria-label="Pretend play phone">
+        <div class="product-phone" id="product-phone">
+          <div class="phone-shell">
+            <div class="phone-screen">
+              <div class="phone-display" role="group" aria-label="Phone display">
+                <span class="screen-label" id="mode-label">SONGS</span>
+                <span class="avatar" id="avatar" aria-hidden="true">🎵</span>
+                <p class="screen-message" id="message" aria-live="polite">Choose a song key</p>
+                <div class="mode-functions" id="mode-functions" aria-live="polite"></div>
+              </div>
+              <button class="phone-logo" id="mode-button" type="button" aria-label="Change button mode">MODE</button>
+              <div class="nokia-actions" aria-label="Phone action buttons">
+                <button class="nokia-action call" id="call-button" type="button" aria-label="Call and repeat the last song">☎</button>
+                <button class="nokia-action end" id="end-button" type="button" aria-label="End call and stop sound">✕</button>
+              </div>
+              <span class="phone-speaker" aria-hidden="true"><i></i><i></i><i></i></span>
+              <div class="phone-keypad" role="group" aria-label="Phone keys 1 to 9, star, 0, and hash">
+                <button class="phone-key" type="button" data-phone-key="0" aria-label="Play Twinkle Twinkle">
+                  <span class="key-disc" aria-hidden="true">1</span><span class="key-number">Twinkle</span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="1" aria-label="Play Mary Had a Little Lamb">
+                  <span class="key-disc" aria-hidden="true">2</span><span class="key-number">Mary</span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="2" aria-label="Phone key 3">
+                  <span class="key-disc" aria-hidden="true">3</span><span class="key-number"></span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="3" aria-label="Phone key 4">
+                  <span class="key-disc" aria-hidden="true">4</span><span class="key-number"></span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="4" aria-label="Phone key 5">
+                  <span class="key-disc" aria-hidden="true">5</span><span class="key-number"></span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="5" aria-label="Phone key 6">
+                  <span class="key-disc" aria-hidden="true">6</span><span class="key-number"></span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="6" aria-label="Phone key 7">
+                  <span class="key-disc" aria-hidden="true">7</span><span class="key-number"></span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="7" aria-label="Phone key 8">
+                  <span class="key-disc" aria-hidden="true">8</span><span class="key-number"></span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="8" aria-label="Phone key 9">
+                  <span class="key-disc" aria-hidden="true">9</span><span class="key-number"></span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="9" aria-label="Star key">
+                  <span class="key-disc" aria-hidden="true">*</span><span class="key-number"></span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="10" aria-label="Zero key">
+                  <span class="key-disc" aria-hidden="true">0</span><span class="key-number"></span>
+                </button>
+                <button class="phone-key" type="button" data-phone-key="11" aria-label="Hash key">
+                  <span class="key-disc" aria-hidden="true">#</span><span class="key-number"></span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="keypad" aria-label="Phone buttons">
-          <button class="key" type="button" data-number="1" aria-label="Number 1">
-            <span class="key-number">1</span><span class="key-letters"></span>
-          </button>
-          <button class="key" type="button" data-number="2" aria-label="Number 2">
-            <span class="key-number">2</span><span class="key-letters">ABC</span>
-          </button>
-          <button class="key" type="button" data-number="3" aria-label="Number 3">
-            <span class="key-number">3</span><span class="key-letters">DEF</span>
-          </button>
-          <button class="key" type="button" data-number="4" aria-label="Number 4">
-            <span class="key-number">4</span><span class="key-letters">GHI</span>
-          </button>
-          <button class="key" type="button" data-number="5" aria-label="Number 5">
-            <span class="key-number">5</span><span class="key-letters">JKL</span>
-          </button>
-          <button class="key" type="button" data-number="6" aria-label="Number 6">
-            <span class="key-number">6</span><span class="key-letters">MNO</span>
-          </button>
-          <button class="key" type="button" data-number="7" aria-label="Number 7">
-            <span class="key-number">7</span><span class="key-letters">PQRS</span>
-          </button>
-          <button class="key" type="button" data-number="8" aria-label="Number 8">
-            <span class="key-number">8</span><span class="key-letters">TUV</span>
-          </button>
-          <button class="key" type="button" data-number="9" aria-label="Number 9">
-            <span class="key-number">9</span><span class="key-letters">WXYZ</span>
-          </button>
-          <button class="key key-music key-special" id="music" type="button" aria-label="Play a little tune">🎵</button>
-          <button class="key" type="button" data-number="0" aria-label="Number 0">
-            <span class="key-number">0</span><span class="key-letters"></span>
-          </button>
-          <button class="key key-call key-special" id="call" type="button" aria-label="Pretend to call a friend">📞</button>
+        <div class="parent-controls">
+          <span class="volume-hint">🔊 SOUND ON · use device volume buttons</span>
         </div>
       </section>
-
-      <p class="parent-note">A little pretend play. Buttons make gentle sounds—no real calls, and no numbers are saved.</p>
     </main>
 
     <script>
+      const productPhone = document.getElementById("product-phone");
       const avatar = document.getElementById("avatar");
       const message = document.getElementById("message");
-      const soundToggle = document.getElementById("sound-toggle");
+      const modeLabel = document.getElementById("mode-label");
+      const modeFunctions = document.getElementById("mode-functions");
+      const modeButton = document.getElementById("mode-button");
+      const callButton = document.getElementById("call-button");
+      const endButton = document.getElementById("end-button");
+      const phoneKeys = document.querySelectorAll("[data-phone-key]");
+      const animals = [
+        ["🐶", "Puppy says hello!", 440],
+        ["🐱", "Kitty says hello!", 523.25],
+        ["🐸", "Frog says hello!", 392],
+        ["🐤", "Chirp, chirp!", 659.25],
+        ["🐮", "Moo!", 329.63],
+        ["🦆", "Quack!", 349.23],
+        ["🐑", "Baa!", 392],
+        ["🐵", "Ooh-ooh!", 440],
+        ["🦁", "Roar!", 293.66],
+        ["🐷", "Oink!", 329.63],
+        ["🐘", "Trumpet!", 261.63],
+        ["🐝", "Buzz!", 587.33]
+      ];
       const friends = [
         ["🐻", "Bear says hello!"],
-        ["🐸", "Frog says hello!"],
-        ["🐱", "Cat says hello!"],
         ["🐰", "Bunny says hello!"],
-        ["🐼", "Panda says hello!"]
+        ["🐼", "Panda says hello!"],
+        ["🦊", "Fox says hello!"]
       ];
-      const numberNotes = [261.63, 293.66, 329.63, 349.23, 392, 440, 493.88, 523.25, 587.33, 659.25];
-      let soundOn = true;
+      const nurseryTunes = [
+        {
+          title: "Twinkle Twinkle",
+          icon: "✨",
+          keyLabel: "Twinkle",
+          notes: [
+            60, 60, 67, 67, 69, 69, 67, null,
+            65, 65, 64, 64, 62, 62, 60, null,
+            67, 67, 65, 65, 64, 64, 62, null,
+            67, 67, 65, 65, 64, 64, 62, null,
+            60, 60, 67, 67, 69, 69, 67, null,
+            65, 65, 64, 64, 62, 62, 60
+          ]
+        },
+        {
+          title: "Mary Had a Little Lamb",
+          icon: "🐑",
+          keyLabel: "Mary",
+          notes: [
+            64, 62, 60, 62, 64, 64, 64, null,
+            62, 62, 62, null, 64, 67, 67, null,
+            64, 62, 60, 62, 64, 64, 64, 64,
+            62, 62, 64, 62, 60
+          ]
+        },
+        {
+          title: "Row Your Boat",
+          icon: "🚣",
+          keyLabel: "Row",
+          notes: [
+            60, 60, 60, 62, 64, null, 64, 62, 64, 65, 67, null,
+            67, 67, 67, 64, 64, 64, 60, 60, 60, null,
+            67, 65, 64, 62, 60
+          ]
+        },
+        {
+          title: "London Bridge",
+          icon: "🌉",
+          keyLabel: "London",
+          notes: [
+            67, 69, 67, 66, 64, 66, 67, null,
+            62, 64, 66, 64, 66, 67, null,
+            67, 69, 67, 66, 64, 66, 67, null,
+            62, 67, 64, 60
+          ]
+        },
+        {
+          title: "Baa Baa Black Sheep",
+          icon: "🐑",
+          keyLabel: "Baa Baa",
+          notes: [
+            60, 60, 67, 67, 69, 69, 67, null,
+            65, 65, 64, 64, 62, 62, 60, null,
+            67, 67, 65, 65, 64, 64, 62, null,
+            67, 67, 65, 65, 64, 64, 62, null,
+            60, 60, 67, 67, 69, 69, 67, null,
+            65, 65, 64, 64, 62, 62, 60
+          ]
+        },
+        {
+          title: "Old MacDonald Had a Farm",
+          icon: "🐮",
+          keyLabel: "MacDonald",
+          notes: [
+            60, 60, 60, 67, 69, 69, 67, null,
+            64, 64, 62, 62, 60, null, null, null,
+            60, 60, 60, 67, 69, 69, 67, null,
+            64, 64, 62, 62, 60
+          ]
+        },
+        {
+          title: "Frere Jacques",
+          icon: "🎶",
+          keyLabel: "Frere",
+          notes: [
+            60, 62, 64, 60, null, 60, 62, 64, 60, null,
+            64, 65, 67, null, 64, 65, 67, null,
+            67, 69, 67, 65, 64, 60, null,
+            67, 69, 67, 65, 64, 60, null,
+            60, 67, 60, null, 60, 67, 60
+          ]
+        },
+        {
+          title: "Three Blind Mice",
+          icon: "🐭",
+          keyLabel: "3 Mice",
+          notes: [
+            64, 62, 60, null, 64, 62, 60, null,
+            67, 67, 64, 64, null, 65, 65, 62, null,
+            64, 62, 60, null, 64, 62, 60, null,
+            67, 67, 64, 64, null, 65, 65, 60
+          ]
+        },
+        {
+          title: "Humpty Dumpty",
+          icon: "🥚",
+          keyLabel: "Humpty",
+          notes: [
+            60, 60, 67, 67, 69, 69, 67, null,
+            65, 65, 64, 64, 62, 62, 60, null,
+            67, 67, 65, 65, 64, 64, 62, null,
+            67, 67, 65, 65, 64, 64, 62, null,
+            60, 60, 67, 67, 69, 69, 67, null,
+            65, 65, 64, 64, 62, 62, 60
+          ]
+        },
+      ];
+      const midiFrequency = (note) => 440 * Math.pow(2, (note - 69) / 12);
+      function makeTune(song, beat = .22, repeats = 2) {
+        const notes = [];
+        const chordRoots = [60, 65, 67, 60, 62, 67, 65, 60];
+        const thirds = { 0: 4, 2: 3, 4: 3, 5: 4, 7: 4, 9: 3, 11: 3 };
+        for (let repeat = 0; repeat < repeats; repeat++) {
+          const mix = repeat === 0 ? .82 : 1;
+          const add = (pitch, time, length, waveform, level, instrument) => {
+            notes.push([midiFrequency(pitch), time, length, waveform, level * mix, instrument]);
+          };
+          const offset = repeat * (song.notes.length + 2) * beat;
+          song.notes.forEach((note, index) => {
+            if (note !== null) {
+              const time = offset + index * beat;
+              add(note, time, beat * .84, "triangle", .4, "lead");
+              if (index % 4 === 0) {
+                const harmony = note + (thirds[note % 12] || 3);
+                add(harmony, time + beat * .12, beat * .68, "sine", .095, "flute");
+              }
+            }
+          });
+
+          const measures = Math.ceil(song.notes.length / 8);
+          for (let measure = 0; measure < measures; measure++) {
+            const root = chordRoots[measure % chordRoots.length];
+            const chord = [root, root + (root === 62 ? 3 : 4), root + 7];
+            const barStart = offset + measure * 8 * beat;
+
+            chord.forEach((note) => {
+              add(note, barStart, beat * 7.7, "sine", .035, "strings");
+            });
+
+            for (let step = 0; step < 8; step += 2) {
+              const time = barStart + step * beat;
+              const chordTone = chord[(step / 2 + measure) % chord.length] + 12;
+              add(chordTone, time, beat * .72, "triangle", .085, "pluck");
+              add(chordTone + 12, time + beat * .12, beat * .62, "sine", .06, "bell");
+              if (step === 0 || step === 4) {
+                chord.forEach((note) => add(note, time, beat * .58, "sine", .055, "piano"));
+              }
+              const drum = step === 0 ? "kick" : step === 4 ? "snare" : "hat";
+              notes.push([0, time, .11, "sine", (step === 0 ? .105 : .045) * mix, drum]);
+            }
+
+            [0, 4].forEach((step) => {
+              const bassNote = Math.max(36, root - 12 + (step === 4 ? 7 : 0));
+              add(bassNote, barStart + step * beat, beat * 1.7, "sine", .22, "bass");
+            });
+
+            if (measure === measures - 1) {
+              for (let step = 5; step < 8; step++) {
+                notes.push([0, barStart + step * beat, .11, "sine", .035 * mix, "snare"]);
+              }
+              notes.push([0, barStart + 7 * beat, .55, "sine", .055 * mix, "crash"]);
+            }
+          }
+        }
+        return notes;
+      }
+      const modes = {
+        melody: () => {
+          const song = nurseryTunes[Math.floor(Math.random() * nurseryTunes.length)];
+          return { face: "🎼", text: song.title, color: "#f6b6dc", notes: makeTune(song) };
+        },
+        abc: () => ({
+          face: "🔤", text: "A, B, C!", color: "#a9d8fa",
+          notes: makeTune({ notes: [60, 62, 64, 65, 67, 69, 71, 72] }, .23, 1)
+        }),
+        animals: () => {
+          const [face, text, note] = animals[Math.floor(Math.random() * animals.length)];
+          return { face, text, color: "#ffc4af", notes: [[note, 0, .18], [note * .8, .2, .2]] };
+        },
+        numbers: () => {
+          const number = Math.floor(Math.random() * 9) + 1;
+          return {
+            face: String(number), text: `Number ${number}!`, color: "#c5e8a4",
+            notes: [[261.63 * Math.pow(2, (number - 1) / 12), 0, .24]]
+          };
+        },
+        hello: () => {
+          const [face, text] = friends[Math.floor(Math.random() * friends.length)];
+          return {
+            face, text, color: "#bce8d7",
+            notes: [[659.25, 0, .14], [523.25, .18, .18], [783.99, .4, .25]]
+          };
+        },
+        camera: () => ({
+          face: "📸", text: "Click! Smile!", color: "#fff0a8",
+          notes: [[1174.66, 0, .07], [783.99, .1, .12]]
+        }),
+        ring: () => ({
+          face: "🔔", text: "Ring-ring!", color: "#f8d28e",
+          notes: [[659.25, 0, .2], [783.99, .24, .2], [659.25, .54, .2]]
+        }),
+        music: () => {
+          const song = nurseryTunes[Math.floor(Math.random() * nurseryTunes.length)];
+          return { face: "🎵", text: song.title, color: "#b5d9fa", notes: makeTune(song, .2) };
+        },
+        weather: () => {
+          const weather = [
+            ["☀️", "Sunny day!", 659.25],
+            ["🌧️", "Pitter-patter!", 392],
+            ["🌈", "Rainbow!", 523.25]
+          ][Math.floor(Math.random() * 3)];
+          return { face: weather[0], text: weather[1], color: "#b5e5f3", notes: [[weather[2], 0, .2], [weather[2] * 1.25, .25, .26]] };
+        },
+        lights: () => ({
+          face: "✨", text: "Sparkle, sparkle!", color: "#ead0ff",
+          notes: [[783.99, 0, .13], [987.77, .14, .16], [1174.66, .3, .22]]
+        }),
+        sounds: () => ({
+          face: "🎈", text: "Boing, boing!", color: "#ffc8a5",
+          notes: [[329.63, 0, .14], [659.25, .16, .14], [440, .34, .2]]
+        }),
+        message: () => ({
+          face: "💌", text: "Ding-dong!", color: "#f7bed0",
+          notes: [[523.25, 0, .16], [659.25, .22, .24]]
+        })
+      };
+      const numberKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+      const animalLabels = ["Puppy", "Kitty", "Frog", "Bird", "Cow", "Duck", "Sheep", "Monkey", "Lion"];
+      const playModeKeys = [
+        ["melody", "Melody"],
+        ["abc", "Letters"],
+        ["hello", "Call"],
+        ["camera", "Camera"],
+        ["ring", "Ring"],
+        ["music", "Music"],
+        ["weather", "Weather"],
+        ["lights", "Lights"],
+        ["sounds", "Funny"]
+      ];
+      const phoneModes = [
+        {
+          title: "SONGS",
+          keys: nurseryTunes.map((song, index) => ({
+            label: song.keyLabel,
+            ariaLabel: `Play ${song.title}`,
+            type: "song",
+            index
+          }))
+        },
+        {
+          title: "NUMBERS",
+          keys: numberKeys.map((number) => ({
+            label: `Number ${number}`,
+            ariaLabel: `Play ${number}`,
+            type: "number",
+            number
+          }))
+        },
+        {
+          title: "ANIMAL SOUNDS",
+          keys: animals.slice(0, 9).map(([face, text], index) => ({
+            label: animalLabels[index],
+            ariaLabel: text,
+            type: "animal",
+            index
+          }))
+        },
+        {
+          title: "PLAY MODES",
+          keys: playModeKeys.map(([mode, label]) => ({
+            label,
+            ariaLabel: `${label} mode`,
+            type: "mode",
+            mode
+          }))
+        }
+      ];
+      let activePhoneMode = 0;
+      let lastPhoneKey = null;
       let audioContext;
+      let masterGain;
+      const activeVoices = new Set();
+      let audioUnavailable = false;
 
-      function playTone(frequency, delay = 0, length = 0.16) {
-        if (!soundOn) return;
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        audioContext ||= new AudioContext();
+      function stopSounds() {
+        if (!audioContext) return;
+        const now = audioContext.currentTime;
+        activeVoices.forEach(({ sources, gain }) => {
+          gain.gain.cancelScheduledValues(now);
+          gain.gain.setTargetAtTime(0.0001, now, .02);
+          sources.forEach((source) => source.stop(now + .06));
+        });
+        activeVoices.clear();
+      }
+
+      function getAudioContext() {
+        const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextConstructor) {
+          if (!audioUnavailable) message.textContent = "Sound is unavailable in this browser.";
+          audioUnavailable = true;
+          return null;
+        }
+        if (!audioContext) {
+          audioContext = new AudioContextConstructor();
+          masterGain = audioContext.createGain();
+          masterGain.gain.value = .8;
+          const compressor = audioContext.createDynamicsCompressor();
+          compressor.threshold.value = -12;
+          compressor.knee.value = 6;
+          compressor.ratio.value = 8;
+          compressor.attack.value = .003;
+          compressor.release.value = .12;
+          masterGain.connect(compressor);
+          compressor.connect(audioContext.destination);
+        }
         if (audioContext.state === "suspended") audioContext.resume();
-
-        const start = audioContext.currentTime + delay;
-        const oscillator = audioContext.createOscillator();
-        const volume = audioContext.createGain();
-        oscillator.type = "sine";
-        oscillator.frequency.setValueAtTime(frequency, start);
-        volume.gain.setValueAtTime(0.0001, start);
-        volume.gain.exponentialRampToValueAtTime(0.045, start + 0.025);
-        volume.gain.exponentialRampToValueAtTime(0.0001, start + length);
-        oscillator.connect(volume);
-        volume.connect(audioContext.destination);
-        oscillator.start(start);
-        oscillator.stop(start + length + 0.02);
+        return audioContext;
       }
 
-      function showFace(face, words) {
-        avatar.textContent = face;
-        message.textContent = words;
+      function trackVoice(sources, gain, start, length) {
+        const voice = { sources, gain };
+        activeVoices.add(voice);
+        let ended = 0;
+        sources.forEach((source) => {
+          source.onended = () => {
+            ended++;
+            if (ended === sources.length) activeVoices.delete(voice);
+          };
+          source.start(start);
+          source.stop(start + length + .02);
+        });
+      }
+
+      function playDrum(instrument, delay, level) {
+        const context = getAudioContext();
+        if (!context) return;
+
+        const start = context.currentTime + delay;
+        const length = instrument === "kick" ? .2 : instrument === "crash" ? .65 : .13;
+        const noteGain = context.createGain();
+        noteGain.gain.setValueAtTime(Math.max(.0001, level), start);
+        noteGain.gain.exponentialRampToValueAtTime(.0001, start + length);
+
+        if (instrument === "kick") {
+          const oscillator = context.createOscillator();
+          oscillator.type = "sine";
+          oscillator.frequency.setValueAtTime(125, start);
+          oscillator.frequency.exponentialRampToValueAtTime(48, start + length);
+          oscillator.connect(noteGain);
+          noteGain.connect(masterGain);
+          trackVoice([oscillator], noteGain, start, length);
+          return;
+        }
+
+        const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * length), context.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let index = 0; index < data.length; index++) data[index] = Math.random() * 2 - 1;
+        const noise = context.createBufferSource();
+        const filter = context.createBiquadFilter();
+        filter.type = "highpass";
+        const cutoff = instrument === "snare" ? 1100 : instrument === "crash" ? 3200 : 6500;
+        filter.frequency.setValueAtTime(cutoff, start);
+        noise.buffer = buffer;
+        noise.connect(filter);
+        filter.connect(noteGain);
+        noteGain.connect(masterGain);
+        trackVoice([noise], noteGain, start, length);
+      }
+
+      function playTone(frequency, delay = 0, length = 0.16, waveform = "sine", level = .65, instrument = "lead") {
+        if (["kick", "hat", "snare", "crash"].includes(instrument)) {
+          playDrum(instrument, delay, level);
+          return;
+        }
+        const context = getAudioContext();
+        if (!context) return;
+
+        const start = context.currentTime + delay;
+        const noteGain = context.createGain();
+        const filter = context.createBiquadFilter();
+        filter.type = "lowpass";
+        const patches = {
+          lead: {
+            cutoff: waveform === "sine" ? 3600 : 2800,
+            attack: .012,
+            sustain: .46,
+            partials: [[1, waveform, 0, .7], [2, "sine", -9, .2], [3, "triangle", -16, .08]]
+          },
+          pluck: {
+            cutoff: 3600,
+            attack: .005,
+            sustain: .2,
+            partials: [[1, "triangle", 0, .68], [2, "sine", 3, .24], [3, "sine", -5, .08]]
+          },
+          bass: {
+            cutoff: 700,
+            attack: .018,
+            sustain: .62,
+            partials: [[1, "triangle", 0, .72], [.5, "sine", -4, .26]]
+          },
+          pad: {
+            cutoff: 1800,
+            attack: .16,
+            sustain: .72,
+            partials: [[1, "sawtooth", -6, .34], [1.006, "triangle", 7, .3], [2, "sine", 0, .08]]
+          },
+          strings: {
+            cutoff: 2300,
+            attack: .2,
+            sustain: .78,
+            partials: [[1, "sawtooth", -7, .3], [1.005, "triangle", 7, .26], [2, "sine", 0, .06]]
+          },
+          piano: {
+            cutoff: 4200,
+            attack: .004,
+            sustain: .28,
+            partials: [[1, "sine", 0, .58], [2, "triangle", -3, .25], [3, "sine", 5, .12]]
+          },
+          flute: {
+            cutoff: 2800,
+            attack: .035,
+            sustain: .55,
+            partials: [[1, "sine", 0, .72], [2, "sine", 0, .16], [3, "triangle", 0, .04]]
+          },
+          bell: {
+            cutoff: 5200,
+            attack: .003,
+            sustain: .1,
+            partials: [[1, "sine", 0, .55], [2.4, "sine", 0, .22], [3.8, "sine", 0, .13]]
+          }
+        };
+        const patch = patches[instrument] || patches.lead;
+        filter.frequency.setValueAtTime(patch.cutoff, start);
+        filter.Q.value = .8;
+        noteGain.gain.setValueAtTime(0.0001, start);
+        const attack = Math.min(patch.attack, length * .4);
+        noteGain.gain.exponentialRampToValueAtTime(level, start + attack);
+        noteGain.gain.exponentialRampToValueAtTime(level * patch.sustain, start + Math.min(length * .65, attack + .1));
+        noteGain.gain.exponentialRampToValueAtTime(0.0001, start + length);
+        noteGain.connect(filter);
+        filter.connect(masterGain);
+
+        const sources = [];
+        patch.partials.forEach(([harmonic, type, detune, volume]) => {
+          const oscillator = context.createOscillator();
+          const harmonicGain = context.createGain();
+          oscillator.type = type;
+          oscillator.frequency.setValueAtTime(frequency * harmonic, start);
+          oscillator.detune.value = detune;
+          oscillator.connect(harmonicGain);
+          harmonicGain.gain.value = volume;
+          harmonicGain.connect(noteGain);
+          sources.push(oscillator);
+        });
+        trackVoice(sources, noteGain, start, length);
+      }
+
+      function playResponse(response) {
+        stopSounds();
+        avatar.textContent = response.face;
+        message.textContent = response.text;
+        productPhone.style.setProperty("--flash-color", response.color);
+        productPhone.classList.remove("flash");
         avatar.classList.remove("bounce");
+        void productPhone.offsetWidth;
         void avatar.offsetWidth;
+        productPhone.classList.add("flash");
         avatar.classList.add("bounce");
+        response.notes.forEach(([frequency, delay, length, waveform, level, instrument]) => {
+          playTone(frequency, delay, length, waveform, level, instrument);
+        });
       }
 
-      document.querySelectorAll("[data-number]").forEach((button) => {
+      function animateButton(button) {
+        button.classList.remove("pressed");
+        void button.offsetWidth;
+        button.classList.add("pressed");
+        window.setTimeout(() => button.classList.remove("pressed"), 280);
+      }
+
+      function renderPhoneMode() {
+        const selectedMode = phoneModes[activePhoneMode];
+        modeLabel.textContent = selectedMode.title;
+        avatar.hidden = true;
+        message.hidden = true;
+        modeFunctions.hidden = false;
+        modeFunctions.textContent = Array.from({ length: 3 }, (_, row) => {
+          const firstIndex = row * 3;
+          return selectedMode.keys
+            .slice(firstIndex, firstIndex + 3)
+            .map((key, index) => `${firstIndex + index + 1} ${key.label}`)
+            .join("   ·   ");
+        }).join("\n");
+        modeButton.setAttribute("aria-label", `Change button mode. Current mode: ${selectedMode.title}`);
+        phoneKeys.forEach((button, index) => {
+          if (index >= 9) {
+            const dialLabel = ["*", "0", "#"][index - 9];
+            button.querySelector(".key-disc").textContent = dialLabel;
+            button.querySelector(".key-number").textContent = "";
+            button.setAttribute("aria-label", `Phone key ${dialLabel}`);
+            return;
+          }
+          const key = selectedMode.keys[index];
+          button.querySelector(".key-disc").textContent = String(index + 1);
+          button.querySelector(".key-number").textContent = "";
+          button.setAttribute("aria-label", key.ariaLabel);
+        });
+      }
+
+      function playPhoneKey(button) {
+        lastPhoneKey = button;
+        const dialIndex = Number(button.dataset.phoneKey);
+        if (dialIndex >= 9) {
+          const dial = ["*", "0", "#"][dialIndex - 9];
+          const frequency = dial === "*" ? 740 : dial === "#" ? 880 : 261.63;
+          modeFunctions.hidden = true;
+          avatar.hidden = false;
+          message.hidden = false;
+          playResponse({
+            face: dial,
+            text: dial === "0" ? "Number 0!" : `Key ${dial}`,
+            color: "#c5e8a4",
+            notes: [[frequency, 0, .24]]
+          });
+          return;
+        }
+        const key = phoneModes[activePhoneMode].keys[Number(button.dataset.phoneKey)];
+        modeFunctions.hidden = true;
+        avatar.hidden = false;
+        message.hidden = false;
+        if (key.type === "song") {
+          const song = nurseryTunes[key.index];
+          playResponse({ face: song.icon, text: song.title, color: "#f6b6dc", notes: makeTune(song) });
+          return;
+        }
+        if (key.type === "number") {
+          const digit = Number(key.number);
+          const frequency = key.number === "*" ? 740 : key.number === "#" ? 880 : 261.63 * Math.pow(2, (digit - 1) / 12);
+          playResponse({
+            face: key.number,
+            text: `Number ${key.number}!`,
+            color: "#c5e8a4",
+            notes: [[frequency, 0, .24]]
+          });
+          return;
+        }
+        if (key.type === "animal") {
+          const [face, text, note] = animals[key.index];
+          playResponse({ face, text, color: "#ffc4af", notes: [[note, 0, .18], [note * .8, .2, .2]] });
+          return;
+        }
+        playResponse(modes[key.mode]());
+      }
+
+      phoneKeys.forEach((button) => {
         button.addEventListener("click", () => {
-          const number = Number(button.dataset.number);
-          showFace("😊", `${number}!`);
-          playTone(numberNotes[number]);
+          animateButton(button);
+          playPhoneKey(button);
         });
       });
 
-      document.getElementById("call").addEventListener("click", () => {
-        const [face, words] = friends[Math.floor(Math.random() * friends.length)];
-        showFace(face, words);
-        [523.25, 659.25, 783.99].forEach((note, index) => playTone(note, index * 0.14));
+      modeButton.addEventListener("click", () => {
+        animateButton(modeButton);
+        stopSounds();
+        activePhoneMode = (activePhoneMode + 1) % phoneModes.length;
+        renderPhoneMode();
       });
 
-      document.getElementById("music").addEventListener("click", () => {
-        showFace("🎵", "La, la, la!");
-        [392, 493.88, 587.33, 493.88, 392].forEach((note, index) => playTone(note, index * 0.2, 0.22));
+      callButton.addEventListener("click", () => {
+        animateButton(callButton);
+        playPhoneKey(lastPhoneKey || phoneKeys[0]);
       });
 
-      soundToggle.addEventListener("click", () => {
-        soundOn = !soundOn;
-        soundToggle.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
-        soundToggle.setAttribute("aria-pressed", String(soundOn));
+      endButton.addEventListener("click", () => {
+        animateButton(endButton);
+        stopSounds();
+        avatar.hidden = true;
+        message.hidden = true;
+        modeFunctions.hidden = false;
+        modeFunctions.textContent = "Call ended";
       });
+
+      renderPhoneMode();
     </script>
   </body>
 </html>
