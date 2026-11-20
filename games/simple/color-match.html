@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Match — FreeGroup</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2340 0%, #0d1120 55%, #090b14 100%);
+    color: #e8ecf8; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; padding: 16px;
+  }
+  h1 { font-size: 1.6rem; background: linear-gradient(90deg, #6ee7f9, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hud { display: flex; gap: 22px; font-size: 0.95rem; align-items: center; }
+  .hud span b { color: #6ee7f9; }
+  .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px 48px; text-align: center; min-width: 420px; }
+  .prompt { font-size: 3.5rem; font-weight: 700; margin-bottom: 24px; text-shadow: 0 0 20px currentColor; }
+  .choices { display: flex; gap: 14px; justify-content: center; }
+  .choice { padding: 14px 32px; font-size: 1.1rem; font-weight: 600; border: 2px solid rgba(255,255,255,0.2); border-radius: 10px; cursor: pointer; transition: all 0.15s; background: rgba(255,255,255,0.05); }
+  .choice:hover { transform: scale(1.05); border-color: rgba(255,255,255,0.4); }
+  button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: #e8ecf8; padding: 8px 18px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+  button:hover { background: rgba(110,231,249,0.15); }
+  .hint { color: #9aa3bf; font-size: 0.8rem; text-align: center; }
+  .result { font-size: 1rem; min-height: 1.5rem; font-weight: 600; margin-top: 12px; }
+.fg-back{position:fixed;z-index:99;top:10px;left:10px;padding:7px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(13,17,32,.78);color:#e8ecf8;text-decoration:none;font:600 13px system-ui,sans-serif;backdrop-filter:blur(6px)}
+.fg-back:hover{background:rgba(110,231,249,.2)}
+.fg-back:focus-visible{outline:2px solid #6ee7f9;outline-offset:2px}
+</style>
+</head>
+<body>
+  <a class="fg-back" href="index.html">← Mini Games</a>
+  <h1>Color Match (Stroop Test)</h1>
+  <div class="hud">
+    <span>Score: <b id="score">0</b></span>
+    <span>Time: <b id="time">30</b>s</span>
+    <span>Best: <b id="best">0</b></span>
+    <button id="mute">Sound: On</button>
+  </div>
+  <div class="card">
+    <div class="prompt" id="prompt">RED</div>
+    <div class="choices" id="choices"></div>
+    <div class="result" id="result"></div>
+  </div>
+  <div class="hint">Click the COLOR of the word, not the word itself &middot; 30 seconds</div>
+
+<script src="sfx.js"></script>
+<script>
+(function () {
+  const promptEl = document.getElementById('prompt'), choicesEl = document.getElementById('choices');
+  const scoreEl = document.getElementById('score'), timeEl = document.getElementById('time'), bestEl = document.getElementById('best');
+  const resultEl = document.getElementById('result');
+  const muteBtn = document.getElementById('mute');
+  const sfx = window.SFX || { pickup(){}, hit(){}, win(){}, toggleMute(){ return false; } };
+
+  const COLORS = [
+    { name: 'RED', hex: '#f87171' },
+    { name: 'BLUE', hex: '#67e8f9' },
+    { name: 'GREEN', hex: '#4ade80' },
+    { name: 'YELLOW', hex: '#facc15' },
+    { name: 'PURPLE', hex: '#a78bfa' },
+    { name: 'ORANGE', hex: '#fdba74' }
+  ];
+  let score, timeLeft, running, timer, currentColor;
+  let best = 0;
+  try { best = parseInt(localStorage.getItem('colorMatchBest') || '0', 10) || 0; } catch (e) { /* ignore */ }
+  bestEl.textContent = best;
+
+  function reset() {
+    score = 0; timeLeft = 30; running = true;
+    scoreEl.textContent = '0'; timeEl.textContent = '30'; resultEl.textContent = '';
+    clearInterval(timer);
+    timer = setInterval(() => {
+      timeLeft--;
+      timeEl.textContent = timeLeft;
+      if (timeLeft <= 0) end();
+    }, 1000);
+    nextRound();
+  }
+
+  function nextRound() {
+    if (!running) return;
+    const word = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    currentColor = color;
+    promptEl.textContent = word.name;
+    promptEl.style.color = color.hex;
+    const opts = [...COLORS].sort(() => Math.random() - 0.5).slice(0, 4);
+    if (!opts.includes(color)) opts[Math.floor(Math.random() * 4)] = color;
+    choicesEl.innerHTML = opts.map(c => `<div class="choice" data-name="${c.name}" style="color:${c.hex}">${c.name}</div>`).join('');
+    resultEl.textContent = '';
+  }
+
+  function checkAnswer(name) {
+    if (!running) return;
+    if (name === currentColor.name) {
+      score++; scoreEl.textContent = score; sfx.pickup();
+      resultEl.style.color = '#4ade80'; resultEl.textContent = 'Correct!';
+    } else {
+      sfx.hit();
+      resultEl.style.color = '#f87171'; resultEl.textContent = 'Wrong!';
+    }
+    setTimeout(nextRound, 400);
+  }
+
+  function end() {
+    running = false; clearInterval(timer);
+    if (score > best) { best = score; bestEl.textContent = best; try { localStorage.setItem('colorMatchBest', String(best)); } catch (e) {} sfx.win(); }
+    resultEl.style.color = '#6ee7f9'; resultEl.textContent = 'Time up! Final score: ' + score;
+  }
+
+  choicesEl.addEventListener('click', (e) => {
+    const choice = e.target.closest('.choice');
+    if (choice) checkAnswer(choice.dataset.name);
+  });
+
+  muteBtn.addEventListener('click', () => { const m = sfx.toggleMute(); muteBtn.textContent = 'Sound: ' + (m ? 'Off' : 'On'); });
+
+  reset();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nonogram — FreeGroup</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2340 0%, #0d1120 55%, #090b14 100%);
+    color: #e8ecf8; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 16px;
+  }
+  h1 { font-size: 1.6rem; background: linear-gradient(90deg, #6ee7f9, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hud { display: flex; gap: 22px; font-size: 0.95rem; align-items: center; }
+  .hud span b { color: #6ee7f9; }
+  canvas { background: #05070f; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; box-shadow: 0 0 60px rgba(167,139,250,0.08); touch-action: none; max-width: 100%; display: block; cursor: pointer; }
+  button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: #e8ecf8; padding: 8px 18px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+  button:hover { background: rgba(110,231,249,0.15); }
+  .hint { color: #9aa3bf; font-size: 0.8rem; text-align: center; }
+  .wrap { position: relative; }
+  #overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(9,11,20,0.82); border-radius: 12px; }
+  #overlay.show { display: flex; }
+  #overlay .panel { text-align: center; padding: 24px 32px; }
+  #overlay h2 { font-size: 1.8rem; margin-bottom: 8px; }
+  #overlay p { color: #9aa3bf; margin-bottom: 16px; }
+.fg-back{position:fixed;z-index:99;top:10px;left:10px;padding:7px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(13,17,32,.78);color:#e8ecf8;text-decoration:none;font:600 13px system-ui,sans-serif;backdrop-filter:blur(6px)}
+.fg-back:hover{background:rgba(110,231,249,.2)}
+.fg-back:focus-visible{outline:2px solid #6ee7f9;outline-offset:2px}
+</style>
+</head>
+<body>
+  <a class="fg-back" href="index.html">← Mini Games</a>
+  <h1>Nonogram</h1>
+  <div class="hud">
+    <span>Puzzle: <b id="level">1</b></span>
+    <button id="mode">Mode: Fill</button>
+    <button id="newgame">New Puzzle</button>
+    <button id="mute">Sound: On</button>
+  </div>
+  <div class="wrap">
+    <canvas id="game" width="450" height="450"></canvas>
+    <div id="overlay"><div class="panel"><h2>Solved!</h2><p id="oText">Puzzle complete</p><button id="oBtn">Next Puzzle</button></div></div>
+  </div>
+  <div class="hint">Left click to fill, right click to mark X &middot; or toggle mode button</div>
+
+<script src="sfx.js"></script>
+<script>
+(function () {
+  const SIZE = 5, CELL = 40, CLUE = 70;
+  const W = CLUE + SIZE * CELL, H = CLUE + SIZE * CELL;
+  const canvas = document.getElementById('game'); canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const levelEl = document.getElementById('level'), modeBtn = document.getElementById('mode');
+  const overlay = document.getElementById('overlay'), oText = document.getElementById('oText');
+  const muteBtn = document.getElementById('mute');
+  const sfx = window.SFX || { click(){}, win(){}, toggleMute(){ return false; } };
+
+  const PUZZLES = [
+    [[0,1,1,1,0],[1,0,1,0,1],[1,1,1,1,1],[1,0,1,0,1],[1,0,1,0,1]], // H
+    [[0,0,1,0,0],[0,1,0,1,0],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1]], // A
+    [[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0],[1,0,1,0,0],[1,0,0,1,0]], // R
+    [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,0],[1,0,0,0,1],[0,1,1,1,0]]  // C
+  ];
+  let solution, grid, rowClues, colClues, level, fillMode;
+
+  function generate(pattern) {
+    solution = pattern.map(r => [...r]);
+    grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0)); // 0=empty, 1=filled, 2=X
+    rowClues = solution.map(row => getClues(row));
+    colClues = Array.from({ length: SIZE }, (_, c) => getClues(solution.map(r => r[c])));
+  }
+
+  function getClues(arr) {
+    const runs = [];
+    let cur = 0;
+    for (const v of arr) {
+      if (v === 1) cur++;
+      else if (cur > 0) { runs.push(cur); cur = 0; }
+    }
+    if (cur > 0) runs.push(cur);
+    return runs.length ? runs : [0];
+  }
+
+  function reset(lv) {
+    level = lv || 1; levelEl.textContent = level;
+    generate(PUZZLES[(level - 1) % PUZZLES.length]);
+    fillMode = true; modeBtn.textContent = 'Mode: Fill';
+    overlay.classList.remove('show');
+  }
+
+  function cellAt(x, y) {
+    const r = Math.floor((y - CLUE) / CELL), c = Math.floor((x - CLUE) / CELL);
+    return r >= 0 && r < SIZE && c >= 0 && c < SIZE ? { r, c } : null;
+  }
+
+  function toggle(r, c, val) {
+    if (grid[r][c] === val) grid[r][c] = 0; else grid[r][c] = val;
+    sfx.click(); check();
+  }
+
+  function check() {
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+      if (solution[r][c] === 1 && grid[r][c] !== 1) return;
+      if (solution[r][c] === 0 && grid[r][c] === 1) return;
+    }
+    win();
+  }
+
+  function win() {
+    sfx.win(); oText.textContent = 'Puzzle ' + level + ' solved!'; overlay.classList.add('show');
+  }
+
+  function draw() {
+    ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H);
+    // clues
+    ctx.font = 'bold 14px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#9aa3bf';
+    for (let r = 0; r < SIZE; r++) {
+      const txt = rowClues[r].join(' ');
+      ctx.fillText(txt, CLUE / 2, CLUE + r * CELL + CELL / 2);
+    }
+    for (let c = 0; c < SIZE; c++) {
+      const txt = colClues[c].join('\n');
+      const lines = txt.split('\n');
+      for (let i = 0; i < lines.length; i++) ctx.fillText(lines[i], CLUE + c * CELL + CELL / 2, CLUE / 2 - 10 + i * 14);
+    }
+    // grid
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+      const x = CLUE + c * CELL, y = CLUE + r * CELL;
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.strokeRect(x, y, CELL, CELL);
+      if (grid[r][c] === 1) { ctx.fillStyle = '#6ee7f9'; ctx.fillRect(x + 3, y + 3, CELL - 6, CELL - 6); }
+      else if (grid[r][c] === 2) { ctx.strokeStyle = '#f87171'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 8, y + 8); ctx.lineTo(x + CELL - 8, y + CELL - 8); ctx.moveTo(x + CELL - 8, y + 8); ctx.lineTo(x + 8, y + CELL - 8); ctx.stroke(); }
+    }
+  }
+
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (W / rect.width), y = (e.clientY - rect.top) * (H / rect.height);
+    const cell = cellAt(x, y); if (!cell) return;
+    toggle(cell.r, cell.c, fillMode ? 1 : 2); draw();
+  });
+  canvas.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (W / rect.width), y = (e.clientY - rect.top) * (H / rect.height);
+    const cell = cellAt(x, y); if (!cell) return;
+    toggle(cell.r, cell.c, 2); draw();
+  });
+
+  modeBtn.addEventListener('click', () => { fillMode = !fillMode; modeBtn.textContent = 'Mode: ' + (fillMode ? 'Fill' : 'Mark X'); });
+  document.getElementById('newgame').addEventListener('click', () => { reset(level); draw(); });
+  document.getElementById('oBtn').addEventListener('click', () => { reset(level + 1); draw(); });
+  muteBtn.addEventListener('click', () => { const m = sfx.toggleMute(); muteBtn.textContent = 'Sound: ' + (m ? 'Off' : 'On'); });
+
+  reset(1);
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bubble Shooter — FreeGroup</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2340 0%, #0d1120 55%, #090b14 100%);
+    color: #e8ecf8; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 16px;
+  }
+  h1 { font-size: 1.6rem; background: linear-gradient(90deg, #6ee7f9, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hud { display: flex; gap: 22px; font-size: 0.95rem; align-items: center; }
+  .hud span b { color: #6ee7f9; }
+  .wrap { position: relative; }
+  canvas { background: #05070f; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; box-shadow: 0 0 60px rgba(167,139,250,0.08); touch-action: none; max-width: 100%; display: block; cursor: crosshair; }
+  button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: #e8ecf8; padding: 8px 18px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+  button:hover { background: rgba(110,231,249,0.15); }
+  .hint { color: #9aa3bf; font-size: 0.8rem; text-align: center; }
+  #overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(9,11,20,0.82); border-radius: 12px; }
+  #overlay.show { display: flex; }
+  #overlay .panel { text-align: center; padding: 24px 32px; }
+  #overlay h2 { font-size: 1.8rem; margin-bottom: 8px; }
+  #overlay p { color: #9aa3bf; margin-bottom: 16px; }
+.fg-back{position:fixed;z-index:99;top:10px;left:10px;padding:7px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(13,17,32,.78);color:#e8ecf8;text-decoration:none;font:600 13px system-ui,sans-serif;backdrop-filter:blur(6px)}
+.fg-back:hover{background:rgba(110,231,249,.2)}
+.fg-back:focus-visible{outline:2px solid #6ee7f9;outline-offset:2px}
+</style>
+</head>
+<body>
+  <a class="fg-back" href="index.html">← Mini Games</a>
+  <h1>Bubble Shooter</h1>
+  <div class="hud">
+    <span>Score: <b id="score">0</b></span>
+    <span>Best: <b id="best">0</b></span>
+    <button id="mute">Sound: On</button>
+  </div>
+  <div class="wrap">
+    <canvas id="game" width="400" height="500"></canvas>
+    <div id="overlay"><div class="panel"><h2 id="oTitle">Game Over</h2><p id="oText">Score: 0</p><button id="oBtn">Play Again</button></div></div>
+  </div>
+  <div class="hint">Aim with mouse / touch, click to shoot &middot; match 3+ of a color to pop</div>
+
+<script src="sfx.js"></script>
+<script>
+(function () {
+  const W = 400, H = 500, R = 18, COLS = 10;
+  const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score'), bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay'), oText = document.getElementById('oText'), oTitle = document.getElementById('oTitle');
+  const muteBtn = document.getElementById('mute');
+  const sfx = window.SFX || { blip(){}, pickup(){}, hit(){}, win(){}, lose(){}, toggleMute(){ return false; } };
+  const COLORS = ['#f87171', '#67e8f9', '#4ade80', '#facc15', '#a78bfa'];
+  const ROW_H = R * 1.72;
+
+  let grid, shooter, flying, aimAngle, score, running, particles;
+  let best = 0;
+  try { best = parseInt(localStorage.getItem('bubbleBest') || '0', 10) || 0; } catch (e) { /* ignore */ }
+  bestEl.textContent = best;
+
+  function rowCols(r) { return r % 2 === 0 ? COLS : COLS - 1; }
+  function cellX(r, c) { return R + c * R * 2 + (r % 2 ? R : 0); }
+  function cellY(r) { return R + r * ROW_H; }
+
+  function reset() {
+    grid = [];
+    for (let r = 0; r < 5; r++) { grid[r] = []; for (let c = 0; c < rowCols(r); c++) grid[r][c] = COLORS[Math.floor(Math.random()*COLORS.length)]; }
+    for (let r = 5; r < 14; r++) { grid[r] = []; for (let c = 0; c < rowCols(r); c++) grid[r][c] = null; }
+    score = 0; scoreEl.textContent = '0'; particles = []; flying = null; aimAngle = -Math.PI/2;
+    shooter = { color: randColor(), next: randColor() };
+    running = true; overlay.classList.remove('show');
+  }
+
+  function randColor() {
+    const present = new Set();
+    for (const row of grid) if (row) for (const c of row) if (c) present.add(c);
+    const pool = present.size ? [...present] : COLORS;
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+
+  function shoot() {
+    if (flying || !running) return;
+    flying = { x: W/2, y: H - R - 6, vx: Math.cos(aimAngle) * 9, vy: Math.sin(aimAngle) * 9, color: shooter.color };
+    sfx.blip(680);
+    shooter.color = shooter.next; shooter.next = randColor();
+  }
+
+  function snap() {
+    // find nearest empty cell to flying bubble
+    let bestCell = null, bestD = Infinity;
+    for (let r = 0; r < grid.length; r++) for (let c = 0; c < rowCols(r); c++) {
+      if (grid[r][c]) continue;
+      // only snap adjacent to existing or top row
+      const x = cellX(r, c), y = cellY(r);
+      const d = Math.hypot(flying.x - x, flying.y - y);
+      if (d < bestD && (r === 0 || hasNeighbor(r, c))) { bestD = d; bestCell = { r, c }; }
+    }
+    if (!bestCell) { // fallback nearest overall
+      for (let r = 0; r < grid.length; r++) for (let c = 0; c < rowCols(r); c++) { if (grid[r][c]) continue; const d = Math.hypot(flying.x - cellX(r,c), flying.y - cellY(r)); if (d < bestD) { bestD = d; bestCell = { r, c }; } }
+    }
+    if (!bestCell) { flying = null; return; }
+    grid[bestCell.r][bestCell.c] = flying.color;
+    const color = flying.color; flying = null;
+    resolveMatch(bestCell.r, bestCell.c, color);
+  }
+
+  function hasNeighbor(r, c) { return neighbors(r, c).some(n => grid[n.r] && grid[n.r][n.c]); }
+
+  function neighbors(r, c) {
+    const even = r % 2 === 0;
+    const offs = even
+      ? [[0,-1],[0,1],[-1,-1],[-1,0],[1,-1],[1,0]]
+      : [[0,-1],[0,1],[-1,0],[-1,1],[1,0],[1,1]];
+    const res = [];
+    for (const [dr, dc] of offs) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < grid.length && nc >= 0 && nc < rowCols(nr)) res.push({ r: nr, c: nc }); }
+    return res;
+  }
+
+  function resolveMatch(r, c, color) {
+    const seen = new Set(), stack = [{ r, c }], group = [];
+    while (stack.length) {
+      const cur = stack.pop(), key = cur.r + ',' + cur.c;
+      if (seen.has(key)) continue; seen.add(key);
+      if (grid[cur.r][cur.c] !== color) continue;
+      group.push(cur);
+      for (const n of neighbors(cur.r, cur.c)) if (!seen.has(n.r+','+n.c) && grid[n.r][n.c] === color) stack.push(n);
+    }
+    if (group.length >= 3) {
+      for (const g of group) { spawnPop(cellX(g.r, g.c), cellY(g.r), grid[g.r][g.c]); grid[g.r][g.c] = null; }
+      score += group.length * 10; scoreEl.textContent = score; sfx.pickup();
+      dropFloating();
+    } else { sfx.hit(); }
+    checkEnd();
+  }
+
+  function dropFloating() {
+    const connected = new Set();
+    for (let c = 0; c < rowCols(0); c++) if (grid[0][c]) floodConnect(0, c, connected);
+    let dropped = 0;
+    for (let r = 0; r < grid.length; r++) for (let c = 0; c < rowCols(r); c++) {
+      if (grid[r][c] && !connected.has(r+','+c)) { spawnPop(cellX(r,c), cellY(r), grid[r][c]); grid[r][c] = null; dropped++; }
+    }
+    if (dropped) { score += dropped * 20; scoreEl.textContent = score; }
+  }
+
+  function floodConnect(r, c, set) {
+    const stack = [{ r, c }];
+    while (stack.length) { const cur = stack.pop(), key = cur.r+','+cur.c; if (set.has(key)) continue; if (!grid[cur.r][cur.c]) continue; set.add(key); for (const n of neighbors(cur.r, cur.c)) if (grid[n.r][n.c] && !set.has(n.r+','+n.c)) stack.push(n); }
+  }
+
+  function spawnPop(x, y, color) { for (let i = 0; i < 6; i++) { const a = Math.random()*Math.PI*2, s = 1+Math.random()*2.5; particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: 1, color }); } }
+
+  function checkEnd() {
+    // win: board empty
+    let any = false, tooLow = false;
+    for (let r = 0; r < grid.length; r++) for (let c = 0; c < rowCols(r); c++) if (grid[r][c]) { any = true; if (cellY(r) > H - 90) tooLow = true; }
+    if (!any) return end(true);
+    if (tooLow) return end(false);
+  }
+
+  function end(won) {
+    running = false;
+    if (score > best) { best = score; bestEl.textContent = best; try { localStorage.setItem('bubbleBest', String(best)); } catch (e) {} }
+    oTitle.textContent = won ? 'Cleared!' : 'Game Over';
+    oText.textContent = 'Score: ' + score;
+    overlay.classList.add('show');
+    if (won) sfx.win(); else sfx.lose();
+  }
+
+  function loop() { requestAnimationFrame(loop); update(); draw(); }
+
+  function update() {
+    if (flying) {
+      flying.x += flying.vx; flying.y += flying.vy;
+      if (flying.x < R) { flying.x = R; flying.vx *= -1; }
+      if (flying.x > W - R) { flying.x = W - R; flying.vx *= -1; }
+      if (flying.y < R) { snap(); }
+      else {
+        for (let r = 0; r < grid.length && flying; r++) for (let c = 0; c < rowCols(r); c++) {
+          if (grid[r][c] && Math.hypot(flying.x - cellX(r,c), flying.y - cellY(r)) < R*1.9) { snap(); break; }
+        }
+      }
+    }
+    for (const p of particles) { p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 0.04; }
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  function draw() {
+    ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H);
+    // grid bubbles
+    for (let r = 0; r < grid.length; r++) for (let c = 0; c < rowCols(r); c++) if (grid[r][c]) drawBubble(cellX(r,c), cellY(r), grid[r][c]);
+    // danger line
+    ctx.strokeStyle = 'rgba(248,113,113,0.4)'; ctx.setLineDash([6,6]); ctx.beginPath(); ctx.moveTo(0, H-84); ctx.lineTo(W, H-84); ctx.stroke(); ctx.setLineDash([]);
+    // aim guide
+    if (running && !flying) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.moveTo(W/2, H - R - 6); ctx.lineTo(W/2 + Math.cos(aimAngle)*90, H - R - 6 + Math.sin(aimAngle)*90); ctx.stroke();
+    }
+    // shooter + next
+    drawBubble(W/2, H - R - 6, shooter.color);
+    drawBubble(W - R - 8, H - R - 6, shooter.next);
+    ctx.fillStyle = '#9aa3bf'; ctx.font = '11px system-ui'; ctx.fillText('next', W - R - 22, H - R - 22);
+    // flying
+    if (flying) drawBubble(flying.x, flying.y, flying.color);
+    // particles
+    for (const p of particles) { ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill(); }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBubble(x, y, color) {
+    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, R - 1, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.beginPath(); ctx.arc(x - 5, y - 5, R/3, 0, Math.PI*2); ctx.fill();
+  }
+
+  function aimAt(clientX, clientY) {
+    const r = canvas.getBoundingClientRect();
+    const x = (clientX - r.left) * (W / r.width), y = (clientY - r.top) * (H / r.height);
+    let a = Math.atan2(y - (H - R - 6), x - W/2);
+    if (a > -0.15) a = -0.15; if (a < -Math.PI + 0.15) a = -Math.PI + 0.15;
+    aimAngle = a;
+  }
+
+  canvas.addEventListener('mousemove', (e) => aimAt(e.clientX, e.clientY));
+  canvas.addEventListener('click', shoot);
+  canvas.addEventListener('touchmove', (e) => { aimAt(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+  canvas.addEventListener('touchstart', (e) => { aimAt(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+  canvas.addEventListener('touchend', (e) => { shoot(); e.preventDefault(); }, { passive: false });
+
+  document.getElementById('oBtn').addEventListener('click', reset);
+  muteBtn.addEventListener('click', () => { const m = sfx.toggleMute(); muteBtn.textContent = 'Sound: ' + (m ? 'Off' : 'On'); });
+
+  reset();
+  loop();
+})();
+</script>
+</body>
+</html>

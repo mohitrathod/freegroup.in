@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minesweeper — FreeGroup</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2340 0%, #0d1120 55%, #090b14 100%);
+    color: #e8ecf8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 16px;
+  }
+  h1 { font-size: 1.6rem; background: linear-gradient(90deg, #6ee7f9, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hud { display: flex; gap: 22px; font-size: 0.95rem; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .hud span b { color: #6ee7f9; }
+  .diffs { display: flex; gap: 8px; }
+  button {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #e8ecf8;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  button:hover { background: rgba(110,231,249,0.15); }
+  button.active { background: rgba(110,231,249,0.25); border-color: #6ee7f9; }
+  .board {
+    display: grid;
+    gap: 2px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 6px;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  .cell {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    background: #1a2240;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .cell:hover { background: #232e55; }
+  .cell.revealed { background: #0f1526; cursor: default; }
+  .cell.revealed:hover { background: #0f1526; }
+  .cell.mine { background: #ef4444; }
+  .cell.flagged { background: #3b2a55; color: #facc15; }
+  .cell.n1 { color: #60a5fa; }
+  .cell.n2 { color: #4ade80; }
+  .cell.n3 { color: #f87171; }
+  .cell.n4 { color: #a78bfa; }
+  .cell.n5 { color: #fb923c; }
+  .cell.n6 { color: #22d3ee; }
+  .cell.n7 { color: #facc15; }
+  .cell.n8 { color: #f472b6; }
+  .hint { color: #9aa3bf; font-size: 0.78rem; text-align: center; }
+.fg-back{position:fixed;z-index:99;top:10px;left:10px;padding:7px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(13,17,32,.78);color:#e8ecf8;text-decoration:none;font:600 13px system-ui,sans-serif;backdrop-filter:blur(6px)}
+.fg-back:hover{background:rgba(110,231,249,.2)}
+.fg-back:focus-visible{outline:2px solid #6ee7f9;outline-offset:2px}
+</style>
+</head>
+<body>
+  <a class="fg-back" href="index.html">← Mini Games</a>
+  <h1>Minesweeper</h1>
+  <div class="hud">
+    <div class="diffs">
+      <button id="d-beg" class="active">Beginner</button>
+      <button id="d-int">Intermediate</button>
+      <button id="d-exp">Expert</button>
+    </div>
+    <span>Mines: <b id="mineCount">10</b></span>
+    <span>Time: <b id="timer">0</b></span>
+    <span>Best: <b id="best">--</b></span>
+    <button id="restart">New Game</button>
+  </div>
+  <div class="board" id="board"></div>
+  <div class="hint">Left click: reveal &middot; Right click: flag &middot; tap &amp; hold on mobile: flag</div>
+
+<script>
+(function () {
+  const DIFFS = {
+    beg: { rows: 9, cols: 9, mines: 10, key: 'msBestBeg' },
+    int: { rows: 16, cols: 16, mines: 40, key: 'msBestInt' },
+    exp: { rows: 16, cols: 30, mines: 99, key: 'msBestExp' }
+  };
+
+  const boardEl = document.getElementById('board');
+  const mineCountEl = document.getElementById('mineCount');
+  const timerEl = document.getElementById('timer');
+  const bestEl = document.getElementById('best');
+
+  let diff = 'beg';
+  let grid, flags, revealed, playing, seconds, timerId;
+
+  function loadBest() {
+    let v = null;
+    try { const s = localStorage.getItem(DIFFS[diff].key); if (s) v = parseInt(s, 10); } catch (e) { /* ignore */ }
+    bestEl.textContent = v === null ? '--' : v + 's';
+  }
+
+  function reset() {
+    clearInterval(timerId);
+    const { rows, cols, mines } = DIFFS[diff];
+    grid = Array.from({ length: rows }, () =>
+      Array.from({ length: cols }, () => ({ mine: false, near: 0, revealed: false, flagged: false }))
+    );
+    flags = mines;
+    revealed = 0;
+    playing = false; // not started until first reveal
+    seconds = 0;
+    timerEl.textContent = '0';
+    mineCountEl.textContent = mines;
+    loadBest();
+    render();
+  }
+
+  function placeMines(safeR, safeC) {
+    const { rows, cols, mines } = DIFFS[diff];
+    const cells = [];
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        if (!(Math.abs(r - safeR) <= 1 && Math.abs(c - safeC) <= 1)) cells.push([r, c]);
+    // shuffle
+    for (let i = cells.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cells[i], cells[j]] = [cells[j], cells[i]];
+    }
+    for (let i = 0; i < mines; i++) {
+      const [r, c] = cells[i];
+      grid[r][c].mine = true;
+    }
+    // compute near
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        if (!grid[r][c].mine) grid[r][c].near = countNear(r, c);
+  }
+
+  function countNear(r, c) {
+    let n = 0;
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < grid.length && nc >= 0 && nc < grid[0].length && grid[nr][nc].mine) n++;
+      }
+    return n;
+  }
+
+  function reveal(r, c) {
+    if (r < 0 || r >= grid.length || c < 0 || c >= grid[0].length) return;
+    const cell = grid[r][c];
+    if (cell.revealed || cell.flagged) return;
+    if (!playing) {
+      playing = true;
+      placeMines(r, c);
+      timerId = setInterval(() => { seconds++; timerEl.textContent = seconds; }, 1000);
+    }
+    cell.revealed = true;
+    revealed++;
+    if (cell.mine) { gameOver(false); return; }
+    if (cell.near === 0) {
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++)
+          if (dr || dc) reveal(r + dr, c + dc);
+    }
+    checkWin();
+    render();
+  }
+
+  function toggleFlag(r, c) {
+    const cell = grid[r][c];
+    if (cell.revealed) return;
+    if (!playing && !cell.flagged) {
+      playing = true;
+      placeMines(r, c);
+      timerId = setInterval(() => { seconds++; timerEl.textContent = seconds; }, 1000);
+    }
+    cell.flagged = !cell.flagged;
+    flags += cell.flagged ? -1 : 1;
+    mineCountEl.textContent = flags;
+    render();
+  }
+
+  function chord(r, c) {
+    const cell = grid[r][c];
+    if (!cell.revealed || cell.near === 0) return;
+    let f = 0;
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < grid.length && nc >= 0 && nc < grid[0].length && grid[nr][nc].flagged) f++;
+      }
+    if (f === cell.near) {
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++)
+          if (dr || dc) reveal(r + dr, c + dc);
+      render();
+    }
+  }
+
+  function checkWin() {
+    const { rows, cols, mines } = DIFFS[diff];
+    if (revealed === rows * cols - mines) gameOver(true);
+  }
+
+  function gameOver(win) {
+    clearInterval(timerId);
+    if (win) {
+      if (seconds > 0) {
+        let bestV = null;
+        try { const s = localStorage.getItem(DIFFS[diff].key); if (s) bestV = parseInt(s, 10); } catch (e) { /* ignore */ }
+        if (bestV === null || seconds < bestV) {
+          try { localStorage.setItem(DIFFS[diff].key, String(seconds)); } catch (e) { /* ignore */ }
+        }
+        loadBest();
+      }
+      for (const row of grid) for (const cell of row) if (cell.mine) cell.flagged = true;
+      alert('You win! Time: ' + seconds + 's');
+    } else {
+      for (const row of grid) for (const cell of row) if (cell.mine) { cell.revealed = true; cell.flagged = false; }
+      alert('Boom! You hit a mine.');
+    }
+    render();
+  }
+
+  function render() {
+    boardEl.style.gridTemplateColumns = 'repeat(' + grid[0].length + ', 30px)';
+    boardEl.innerHTML = '';
+    for (let r = 0; r < grid.length; r++) {
+      for (let c = 0; c < grid[0].length; c++) {
+        const cell = grid[r][c];
+        const el = document.createElement('div');
+        el.className = 'cell';
+        if (cell.revealed) {
+          el.classList.add('revealed');
+          if (cell.mine) { el.classList.add('mine'); el.textContent = '\u2739'; }
+          else if (cell.near > 0) { el.classList.add('n' + cell.near); el.textContent = cell.near; }
+        } else if (cell.flagged) {
+          el.classList.add('flagged');
+          el.textContent = '\u2691';
+        }
+        el.addEventListener('click', () => reveal(r, c));
+        el.addEventListener('contextmenu', (e) => { e.preventDefault(); toggleFlag(r, c); });
+        // long press for flag on touch
+        let holdTimer = null;
+        el.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          holdTimer = setTimeout(() => { toggleFlag(r, c); }, 450);
+        }, { passive: false });
+        el.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; reveal(r, c); }
+        }, { passive: false });
+        el.addEventListener('touchmove', () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } });
+        el.addEventListener('dblclick', () => chord(r, c));
+        boardEl.appendChild(el);
+      }
+    }
+  }
+
+  function setDiff(d) {
+    diff = d;
+    document.querySelectorAll('.diffs button').forEach(b => b.classList.remove('active'));
+    document.getElementById('d-' + d).classList.add('active');
+    reset();
+  }
+
+  document.getElementById('d-beg').addEventListener('click', () => setDiff('beg'));
+  document.getElementById('d-int').addEventListener('click', () => setDiff('int'));
+  document.getElementById('d-exp').addEventListener('click', () => setDiff('exp'));
+  document.getElementById('restart').addEventListener('click', reset);
+
+  reset();
+})();
+</script>
+</body>
+</html>

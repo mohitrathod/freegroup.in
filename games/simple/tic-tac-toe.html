@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic-Tac-Toe — FreeGroup</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2340 0%, #0d1120 55%, #090b14 100%);
+    color: #e8ecf8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+  }
+  h1 { font-size: 1.6rem; background: linear-gradient(90deg, #6ee7f9, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .mode { display: flex; gap: 8px; }
+  .mode button.active { background: rgba(110,231,249,0.25); border-color: #6ee7f9; }
+  button {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #e8ecf8;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  button:hover { background: rgba(110,231,249,0.15); }
+  .status { font-size: 1.05rem; min-height: 1.4em; }
+  .status b { color: #6ee7f9; }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 110px);
+    grid-template-rows: repeat(3, 110px);
+    gap: 8px;
+  }
+  .cell {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    font-size: 3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.12s, transform 0.12s;
+  }
+  .cell:hover { background: rgba(255,255,255,0.09); }
+  .cell.x { color: #6ee7f9; }
+  .cell.o { color: #f472b6; }
+  .cell.win { background: rgba(74,222,128,0.18); border-color: #4ade80; }
+  .scores { display: flex; gap: 26px; font-size: 0.95rem; }
+  .scores span b.x { color: #6ee7f9; }
+  .scores span b.o { color: #f472b6; }
+  .scores span b.d { color: #9aa3bf; }
+.fg-back{position:fixed;z-index:99;top:10px;left:10px;padding:7px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(13,17,32,.78);color:#e8ecf8;text-decoration:none;font:600 13px system-ui,sans-serif;backdrop-filter:blur(6px)}
+.fg-back:hover{background:rgba(110,231,249,.2)}
+.fg-back:focus-visible{outline:2px solid #6ee7f9;outline-offset:2px}
+</style>
+</head>
+<body>
+  <a class="fg-back" href="index.html">← Mini Games</a>
+  <h1>Tic-Tac-Toe</h1>
+  <div class="mode">
+    <button id="modeAI" class="active">vs Computer</button>
+    <button id="mode2P">2 Players</button>
+  </div>
+  <div class="scores">
+    <span>X: <b class="x" id="scoreX">0</b></span>
+    <span>O: <b class="o" id="scoreO">0</b></span>
+    <span>Draws: <b class="d" id="scoreD">0</b></span>
+  </div>
+  <div class="status" id="status">Your turn (X)</div>
+  <div class="board" id="board"></div>
+  <button id="restart">New Game</button>
+
+<script>
+(function () {
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const modeAI = document.getElementById('modeAI');
+  const mode2P = document.getElementById('mode2P');
+  const restartBtn = document.getElementById('restart');
+  const scoreXEl = document.getElementById('scoreX');
+  const scoreOEl = document.getElementById('scoreO');
+  const scoreDEl = document.getElementById('scoreD');
+
+  let vsAI = true;
+  let board, current, gameOver, tally = { x: 0, o: 0, d: 0 };
+  try {
+    const t = JSON.parse(localStorage.getItem('tictactoeTally') || 'null');
+    if (t) tally = t;
+  } catch (e) { /* ignore */ }
+  updateScores();
+
+  const WIN_LINES = [
+    [0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]
+  ];
+
+  function render() {
+    boardEl.innerHTML = '';
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (board[i] === 'X' ? ' x' : board[i] === 'O' ? ' o' : '');
+      cell.textContent = board[i] || '';
+      cell.addEventListener('click', () => handleClick(i));
+      boardEl.appendChild(cell);
+    }
+  }
+
+  function handleClick(i) {
+    if (gameOver || board[i]) return;
+    if (vsAI && current === 'O') return; // AI's turn
+    place(i);
+  }
+
+  function place(i) {
+    board[i] = current;
+    render();
+    const res = checkWin();
+    if (res) { finish(res); return; }
+    if (board.every(v => v)) { finish('draw'); return; }
+    current = current === 'X' ? 'O' : 'X';
+    statusEl.innerHTML = vsAI && current === 'O'
+      ? 'Computer is thinking...'
+      : 'Turn: <b>' + current + '</b>';
+    if (vsAI && current === 'O') setTimeout(aiMove, 350);
+  }
+
+  function checkWin() {
+    for (const [a, b, c] of WIN_LINES) {
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) return { winner: board[a], line: [a, b, c] };
+    }
+    return null;
+  }
+
+  function finish(res) {
+    gameOver = true;
+    if (res === 'draw') {
+      tally.d++;
+      statusEl.textContent = 'It\'s a draw!';
+    } else {
+      tally[res.winner.toLowerCase()]++;
+      statusEl.innerHTML = '<b>' + res.winner + '</b> wins!';
+      const cells = boardEl.children;
+      res.line.forEach(i => cells[i].classList.add('win'));
+    }
+    updateScores();
+    try { localStorage.setItem('tictactoeTally', JSON.stringify(tally)); } catch (e) { /* ignore */ }
+  }
+
+  function updateScores() {
+    scoreXEl.textContent = tally.x;
+    scoreOEl.textContent = tally.o;
+    scoreDEl.textContent = tally.d;
+  }
+
+  function emptyCells() { return board.map((v, i) => v ? -1 : i).filter(i => i >= 0); }
+
+  // Minimax: perfect play for the computer (O)
+  function minimax(b, player) {
+    const w = checkWin();
+    if (w) return w.winner === 'O' ? 10 : -10;
+    if (b.every(v => v)) return 0;
+    const scores = [];
+    for (const i of emptyCells()) {
+      b[i] = player;
+      scores.push({ s: minimax(b, player === 'O' ? 'X' : 'O'), i });
+      b[i] = null;
+    }
+    if (player === 'O') {
+      const best = scores.reduce((a, c) => (c.s > a.s ? c : a));
+      return best.s;
+    }
+    const best = scores.reduce((a, c) => (c.s < a.s ? c : a));
+    return best.s;
+  }
+
+  function aiMove() {
+    if (gameOver || current !== 'O') return;
+    let best = { s: -Infinity, i: -1 };
+    for (const i of emptyCells()) {
+      board[i] = 'O';
+      const s = minimax(board, 'X');
+      board[i] = null;
+      if (s > best.s) best = { s, i };
+    }
+    place(best.i);
+  }
+
+  function newGame() {
+    board = Array(9).fill(null);
+    current = 'X';
+    gameOver = false;
+    statusEl.textContent = 'Your turn (X)';
+    render();
+  }
+
+  modeAI.addEventListener('click', () => {
+    vsAI = true;
+    modeAI.classList.add('active');
+    mode2P.classList.remove('active');
+    newGame();
+  });
+  mode2P.addEventListener('click', () => {
+    vsAI = false;
+    mode2P.classList.add('active');
+    modeAI.classList.remove('active');
+    newGame();
+  });
+  restartBtn.addEventListener('click', newGame);
+
+  newGame();
+})();
+</script>
+</body>
+</html>

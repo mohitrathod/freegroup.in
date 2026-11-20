@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Search — FreeGroup</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2340 0%, #0d1120 55%, #090b14 100%);
+    color: #e8ecf8; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 16px;
+  }
+  h1 { font-size: 1.6rem; background: linear-gradient(90deg, #6ee7f9, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hud { display: flex; gap: 22px; font-size: 0.95rem; align-items: center; }
+  .hud span b { color: #6ee7f9; }
+  canvas { background: #05070f; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; box-shadow: 0 0 60px rgba(167,139,250,0.08); touch-action: none; max-width: 100%; display: block; cursor: pointer; }
+  .wordlist { display: flex; flex-wrap: wrap; gap: 10px; max-width: 480px; justify-content: center; margin-top: 4px; }
+  .word { padding: 6px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; font-size: 0.85rem; }
+  .word.found { background: rgba(74,222,128,0.2); border-color: rgba(74,222,128,0.4); text-decoration: line-through; color: #4ade80; }
+  button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: #e8ecf8; padding: 8px 18px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+  button:hover { background: rgba(110,231,249,0.15); }
+  .hint { color: #9aa3bf; font-size: 0.8rem; text-align: center; margin-top: 8px; }
+.fg-back{position:fixed;z-index:99;top:10px;left:10px;padding:7px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(13,17,32,.78);color:#e8ecf8;text-decoration:none;font:600 13px system-ui,sans-serif;backdrop-filter:blur(6px)}
+.fg-back:hover{background:rgba(110,231,249,.2)}
+.fg-back:focus-visible{outline:2px solid #6ee7f9;outline-offset:2px}
+</style>
+</head>
+<body>
+  <a class="fg-back" href="index.html">← Mini Games</a>
+  <h1>Word Search</h1>
+  <div class="hud">
+    <span>Found: <b id="found">0</b> / <b id="total">0</b></span>
+    <button id="newgame">New Puzzle</button>
+    <button id="mute">Sound: On</button>
+  </div>
+  <canvas id="game" width="480" height="480"></canvas>
+  <div class="wordlist" id="wordlist"></div>
+  <div class="hint">Click & drag to select a word &middot; horizontal, vertical, diagonal</div>
+
+<script src="sfx.js"></script>
+<script>
+(function () {
+  const SIZE = 12, TILE = 40;
+  const W = SIZE * TILE, H = SIZE * TILE;
+  const canvas = document.getElementById('game'); canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const foundEl = document.getElementById('found'), totalEl = document.getElementById('total');
+  const wordlistEl = document.getElementById('wordlist');
+  const muteBtn = document.getElementById('mute');
+  const sfx = window.SFX || { pickup(){}, blip(){}, win(){}, toggleMute(){ return false; } };
+
+  const WORDS = ['JAVASCRIPT', 'PYTHON', 'REACT', 'ANGULAR', 'NODEJS', 'TYPESCRIPT', 'HTML', 'CSS', 'DOCKER', 'GITHUB'];
+  let grid, placed, found, selecting, selStart, selEnd, foundCells;
+
+  function reset() {
+    grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(''));
+    placed = []; found = new Set(); selecting = false; foundCells = new Set();
+    const toPlace = WORDS.slice(0, 6 + Math.floor(Math.random() * 3));
+    for (const word of toPlace) placeWord(word);
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (!grid[r][c]) grid[r][c] = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+    totalEl.textContent = placed.length; foundEl.textContent = found.size;
+    wordlistEl.innerHTML = placed.map(w => `<div class="word" data-word="${w.word}">${w.word}</div>`).join('');
+  }
+
+  function placeWord(word) {
+    const dirs = [[1,0],[0,1],[1,1],[1,-1],[-1,0],[0,-1],[-1,-1],[-1,1]];
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const r = Math.floor(Math.random() * SIZE), c = Math.floor(Math.random() * SIZE);
+      const [dr, dc] = dirs[Math.floor(Math.random() * dirs.length)];
+      let ok = true, cells = [];
+      for (let i = 0; i < word.length; i++) {
+        const nr = r + dr * i, nc = c + dc * i;
+        if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) { ok = false; break; }
+        if (grid[nr][nc] && grid[nr][nc] !== word[i]) { ok = false; break; }
+        cells.push({ r: nr, c: nc });
+      }
+      if (ok) {
+        for (let i = 0; i < word.length; i++) grid[cells[i].r][cells[i].c] = word[i];
+        placed.push({ word, cells });
+        return;
+      }
+    }
+  }
+
+  function cellAt(x, y) {
+    const r = Math.floor(y / TILE), c = Math.floor(x / TILE);
+    return r >= 0 && r < SIZE && c >= 0 && c < SIZE ? { r, c } : null;
+  }
+
+  function cellKey(r, c) { return r + ',' + c; }
+
+  function checkSelection() {
+    if (!selStart || !selEnd) return;
+    const dr = Math.sign(selEnd.r - selStart.r), dc = Math.sign(selEnd.c - selStart.c);
+    const len = Math.max(Math.abs(selEnd.r - selStart.r), Math.abs(selEnd.c - selStart.c)) + 1;
+    let word = '';
+    for (let i = 0; i < len; i++) {
+      const r = selStart.r + dr * i, c = selStart.c + dc * i;
+      word += grid[r][c];
+    }
+    for (const p of placed) {
+      if (p.word === word && !found.has(p.word)) {
+        found.add(p.word); foundEl.textContent = found.size;
+        for (const cell of p.cells) foundCells.add(cellKey(cell.r, cell.c));
+        document.querySelector(`[data-word="${p.word}"]`).classList.add('found');
+        sfx.pickup();
+        if (found.size === placed.length) setTimeout(() => { sfx.win(); alert('Puzzle complete!'); }, 100);
+        return;
+      }
+    }
+    sfx.blip(400);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+      const x = c * TILE, y = r * TILE;
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.strokeRect(x, y, TILE, TILE);
+      if (foundCells.has(cellKey(r, c))) { ctx.fillStyle = 'rgba(74,222,128,0.15)'; ctx.fillRect(x, y, TILE, TILE); }
+      ctx.fillStyle = '#e8ecf8'; ctx.font = 'bold 18px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(grid[r][c], x + TILE/2, y + TILE/2);
+    }
+    if (selecting && selStart && selEnd) {
+      const x1 = selStart.c * TILE + TILE/2, y1 = selStart.r * TILE + TILE/2;
+      const x2 = selEnd.c * TILE + TILE/2, y2 = selEnd.r * TILE + TILE/2;
+      ctx.strokeStyle = '#6ee7f9'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+  }
+
+  function onDown(x, y) {
+    const cell = cellAt(x, y); if (!cell) return;
+    selecting = true; selStart = cell; selEnd = cell; draw();
+  }
+  function onMove(x, y) {
+    if (!selecting) return;
+    const cell = cellAt(x, y); if (!cell) return;
+    const dr = Math.sign(cell.r - selStart.r), dc = Math.sign(cell.c - selStart.c);
+    if (dr === 0 && dc === 0) { selEnd = cell; }
+    else if (Math.abs(dr) === Math.abs(dc) || dr === 0 || dc === 0) { selEnd = cell; }
+    draw();
+  }
+  function onUp() { if (!selecting) return; checkSelection(); selecting = false; selStart = null; selEnd = null; draw(); }
+
+  canvas.addEventListener('mousedown', (e) => { const r = canvas.getBoundingClientRect(); onDown((e.clientX - r.left) * (W / r.width), (e.clientY - r.top) * (H / r.height)); });
+  canvas.addEventListener('mousemove', (e) => { const r = canvas.getBoundingClientRect(); onMove((e.clientX - r.left) * (W / r.width), (e.clientY - r.top) * (H / r.height)); });
+  canvas.addEventListener('mouseup', onUp);
+  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); const r = canvas.getBoundingClientRect(); onDown((e.touches[0].clientX - r.left) * (W / r.width), (e.touches[0].clientY - r.top) * (H / r.height)); }, { passive: false });
+  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); const r = canvas.getBoundingClientRect(); onMove((e.touches[0].clientX - r.left) * (W / r.width), (e.touches[0].clientY - r.top) * (H / r.height)); }, { passive: false });
+  canvas.addEventListener('touchend', (e) => { e.preventDefault(); onUp(); }, { passive: false });
+
+  document.getElementById('newgame').addEventListener('click', () => { reset(); draw(); });
+  muteBtn.addEventListener('click', () => { const m = sfx.toggleMute(); muteBtn.textContent = 'Sound: ' + (m ? 'Off' : 'On'); });
+
+  reset();
+  draw();
+})();
+</script>
+</body>
+</html>

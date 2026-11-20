@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect Four — FreeGroup</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2340 0%, #0d1120 55%, #090b14 100%);
+    color: #e8ecf8; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 16px;
+  }
+  h1 { font-size: 1.6rem; background: linear-gradient(90deg, #6ee7f9, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .status { font-size: 1.05rem; min-height: 1.4em; }
+  .status b.you { color: #facc15; } .status b.cpu { color: #f472b6; }
+  .board { background: #16204a; border-radius: 14px; padding: 10px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+  .cell { width: 52px; height: 52px; border-radius: 50%; background: #0a0e1a; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; }
+  .cell:hover { transform: scale(1.05); }
+  .disc { width: 82%; height: 82%; border-radius: 50%; }
+  .disc.p1 { background: radial-gradient(circle at 32% 30%, #fde68a, #eab308); box-shadow: 0 0 14px rgba(250,204,21,0.5); }
+  .disc.p2 { background: radial-gradient(circle at 32% 30%, #f9a8d4, #db2777); box-shadow: 0 0 14px rgba(244,114,182,0.5); }
+  .disc.drop { animation: drop 0.3s ease-out; }
+  @keyframes drop { from { transform: translateY(-260px); } to { transform: translateY(0); } }
+  .cell.win { box-shadow: 0 0 0 3px #4ade80 inset; }
+  .scores { display: flex; gap: 24px; font-size: 0.9rem; color: #9aa3bf; }
+  .scores b { color: #6ee7f9; }
+  button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: #e8ecf8; padding: 8px 18px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+  button:hover { background: rgba(110,231,249,0.15); }
+.fg-back{position:fixed;z-index:99;top:10px;left:10px;padding:7px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(13,17,32,.78);color:#e8ecf8;text-decoration:none;font:600 13px system-ui,sans-serif;backdrop-filter:blur(6px)}
+.fg-back:hover{background:rgba(110,231,249,.2)}
+.fg-back:focus-visible{outline:2px solid #6ee7f9;outline-offset:2px}
+</style>
+</head>
+<body>
+  <a class="fg-back" href="index.html">← Mini Games</a>
+  <h1>Connect Four</h1>
+  <div class="status" id="status">Your turn</div>
+  <div class="board" id="board"></div>
+  <div class="scores"><span>You: <b id="wYou">0</b></span><span>CPU: <b id="wCpu">0</b></span></div>
+  <button id="restart">New Game</button>
+
+<script src="sfx.js"></script>
+<script>
+(function () {
+  const ROWS = 6, COLS = 7;
+  const boardEl = document.getElementById('board'), statusEl = document.getElementById('status');
+  const sfx = window.SFX || { drop(){}, win(){}, lose(){} };
+  let grid, current, over, wins = { you: 0, cpu: 0 };
+  try { const w = JSON.parse(localStorage.getItem('c4Wins') || 'null'); if (w) wins = w; } catch (e) { /* ignore */ }
+  updateScores();
+
+  function reset() {
+    grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+    current = 1; over = false;
+    statusEl.innerHTML = '<b class="you">Your turn</b>';
+    render();
+  }
+
+  function render(winCells) {
+    boardEl.innerHTML = '';
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if (winCells && winCells.some(([wr, wc]) => wr === r && wc === c)) cell.classList.add('win');
+      if (grid[r][c]) { const d = document.createElement('div'); d.className = 'disc p' + grid[r][c]; cell.appendChild(d); }
+      cell.addEventListener('click', () => humanMove(c));
+      boardEl.appendChild(cell);
+    }
+  }
+
+  function dropRow(c) { for (let r = ROWS - 1; r >= 0; r--) if (!grid[r][c]) return r; return -1; }
+
+  function place(c, player, animate) {
+    const r = dropRow(c);
+    if (r < 0) return -1;
+    grid[r][c] = player;
+    render();
+    if (animate) { const idx = r * COLS + c; const disc = boardEl.children[idx].querySelector('.disc'); if (disc) disc.classList.add('drop'); }
+    sfx.drop();
+    return r;
+  }
+
+  function humanMove(c) {
+    if (over || current !== 1 || dropRow(c) < 0) return;
+    const r = place(c, 1, true);
+    if (finishCheck(1)) return;
+    current = 2;
+    statusEl.innerHTML = '<b class="cpu">CPU thinking...</b>';
+    setTimeout(cpuMove, 420);
+  }
+
+  function cpuMove() {
+    if (over) return;
+    let col = pickColumn();
+    place(col, 2, true);
+    if (finishCheck(2)) return;
+    current = 1;
+    statusEl.innerHTML = '<b class="you">Your turn</b>';
+  }
+
+  // heuristic: win if possible, block if needed, else prefer center
+  function pickColumn() {
+    for (const p of [2, 1]) {
+      for (let c = 0; c < COLS; c++) {
+        const r = dropRow(c); if (r < 0) continue;
+        grid[r][c] = p;
+        const won = winnerAt(r, c);
+        grid[r][c] = 0;
+        if (won) return c;
+      }
+    }
+    const order = [3, 2, 4, 1, 5, 0, 6];
+    for (const c of order) if (dropRow(c) >= 0) return c;
+    return 0;
+  }
+
+  function winnerAt(r, c) {
+    const p = grid[r][c];
+    const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+    for (const [dr, dc] of dirs) {
+      let count = 1, cells = [[r, c]];
+      for (const s of [1, -1]) {
+        let nr = r + dr*s, nc = c + dc*s;
+        while (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && grid[nr][nc] === p) { count++; cells.push([nr, nc]); nr += dr*s; nc += dc*s; }
+      }
+      if (count >= 4) return cells;
+    }
+    return null;
+  }
+
+  function finishCheck(player) {
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      if (grid[r][c] === player) { const w = winnerAt(r, c); if (w) { win(player, w); return true; } }
+    }
+    if (grid.every(row => row.every(v => v))) { over = true; statusEl.textContent = "It's a draw!"; render(); return true; }
+    return false;
+  }
+
+  function win(player, cells) {
+    over = true;
+    render(cells);
+    if (player === 1) { wins.you++; statusEl.innerHTML = '<b class="you">You win!</b>'; sfx.win(); }
+    else { wins.cpu++; statusEl.innerHTML = '<b class="cpu">CPU wins!</b>'; sfx.lose(); }
+    updateScores();
+    try { localStorage.setItem('c4Wins', JSON.stringify(wins)); } catch (e) { /* ignore */ }
+  }
+
+  function updateScores() { document.getElementById('wYou').textContent = wins.you; document.getElementById('wCpu').textContent = wins.cpu; }
+
+  document.getElementById('restart').addEventListener('click', reset);
+  reset();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Games Collection — FreeGroup</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2340 0%, #0d1120 55%, #090b14 100%);
+    color: #e8ecf8;
+    min-height: 100vh;
+    padding: 2.5rem 1.25rem 4rem;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 2.5rem; }
+  header h1 {
+    font-size: 2.4rem;
+    background: linear-gradient(90deg, #6ee7f9, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  header p { color: #9aa3bf; margin-top: 0.5rem; font-size: 0.95rem; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1.1rem;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 14px;
+    padding: 1.1rem 1.1rem 1.2rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(167, 139, 250, 0.55);
+    background: rgba(255, 255, 255, 0.07);
+  }
+  .card .icon { font-size: 1.9rem; line-height: 1; }
+  .card .name { font-size: 1.05rem; font-weight: 700; }
+  .card .desc { font-size: 0.82rem; color: #9aa3bf; line-height: 1.45; }
+  footer { text-align: center; margin-top: 3rem; color: #5c6379; font-size: 0.8rem; }
+.fg-back{position:fixed;z-index:99;top:10px;left:10px;padding:7px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(13,17,32,.78);color:#e8ecf8;text-decoration:none;font:600 13px system-ui,sans-serif;backdrop-filter:blur(6px)}
+.fg-back:hover{background:rgba(110,231,249,.2)}
+.fg-back:focus-visible{outline:2px solid #6ee7f9;outline-offset:2px}
+</style>
+</head>
+<body>
+  <a class="fg-back" href="../../index.html">← FreeGroup</a>
+  <div class="wrap">
+    <header>
+      <h1>Mini Games Collection</h1>
+      <p>30 simple offline games. Open any card to play — no installation, no internet needed.</p>
+    </header>
+    <main class="grid">
+      <a class="card" href="snake.html">
+        <span class="icon">&#128013;</span>
+        <span class="name">Snake</span>
+        <span class="desc">Classic snake. Eat, grow, don't hit the walls or yourself.</span>
+      </a>
+      <a class="card" href="tetris.html">
+        <span class="icon">&#129517;</span>
+        <span class="name">Tetris</span>
+        <span class="desc">Stack falling blocks and clear lines. Hold, next, hard drop.</span>
+      </a>
+      <a class="card" href="tic-tac-toe.html">
+        <span class="icon">&#11093;</span>
+        <span class="name">Tic-Tac-Toe</span>
+        <span class="desc">Beat the AI or play a friend on the same device.</span>
+      </a>
+      <a class="card" href="memory-match.html">
+        <span class="icon">&#127183;</span>
+        <span class="name">Memory Match</span>
+        <span class="desc">Flip cards and find all matching pairs in the fewest moves.</span>
+      </a>
+      <a class="card" href="breakout.html">
+        <span class="icon">&#127923;</span>
+        <span class="name">Breakout</span>
+        <span class="desc">Break every brick with the ball. Levels ramp up fast.</span>
+      </a>
+      <a class="card" href="2048.html">
+        <span class="icon">&#128290;</span>
+        <span class="name">2048</span>
+        <span class="desc">Merge tiles up to 2048 and beyond. Swipe or arrow keys.</span>
+      </a>
+      <a class="card" href="flappy-bird.html">
+        <span class="icon">&#128037;</span>
+        <span class="name">Flappy Bird</span>
+        <span class="desc">Tap to flap through the pipes. How far can you go?</span>
+      </a>
+      <a class="card" href="minesweeper.html">
+        <span class="icon">&#128163;</span>
+        <span class="name">Minesweeper</span>
+        <span class="desc">Clear the board without detonating any mines. Three sizes.</span>
+      </a>
+      <a class="card" href="rock-paper-scissors.html">
+        <span class="icon">&#9998;&#65039;</span>
+        <span class="name">Rock Paper Scissors</span>
+        <span class="desc">Best-of battles against a cunning computer.</span>
+      </a>
+      <a class="card" href="simon-says.html">
+        <span class="icon">&#127925;</span>
+        <span class="name">Simon Says</span>
+        <span class="desc">Repeat the growing light-and-sound sequence. Test your memory.</span>
+      </a>
+      <a class="card" href="pong.html">
+        <span class="icon">&#127955;</span>
+        <span class="name">Pong</span>
+        <span class="desc">The original paddle duel. Play the AI or a friend.</span>
+      </a>
+      <a class="card" href="space-invaders.html">
+        <span class="icon">&#128126;</span>
+        <span class="name">Space Invaders</span>
+        <span class="desc">Blast the descending alien wave before it reaches you.</span>
+      </a>
+      <a class="card" href="connect-four.html">
+        <span class="icon">&#128992;</span>
+        <span class="name">Connect Four</span>
+        <span class="desc">Drop discs and line up four in a row against the AI.</span>
+      </a>
+      <a class="card" href="whack-a-mole.html">
+        <span class="icon">&#128034;</span>
+        <span class="name">Whack-a-Mole</span>
+        <span class="desc">Tap the moles as fast as they pop up. Beat the clock.</span>
+      </a>
+      <a class="card" href="hangman.html">
+        <span class="icon">&#128272;</span>
+        <span class="name">Hangman</span>
+        <span class="desc">Guess the hidden word letter by letter before you run out.</span>
+      </a>
+      <a class="card" href="sliding-puzzle.html">
+        <span class="icon">&#128293;</span>
+        <span class="name">Sliding Puzzle</span>
+        <span class="desc">Slide the tiles back into order. Classic 15-puzzle.</span>
+      </a>
+      <a class="card" href="reaction-test.html">
+        <span class="icon">&#9889;</span>
+        <span class="name">Reaction Test</span>
+        <span class="desc">Wait for green, then click. Measure your reflexes.</span>
+      </a>
+      <a class="card" href="typing-test.html">
+        <span class="icon">&#9000;&#65039;</span>
+        <span class="name">Typing Test</span>
+        <span class="desc">Type the passage and track your WPM and accuracy.</span>
+      </a>
+      <a class="card" href="asteroids.html">
+        <span class="icon">&#9732;</span>
+        <span class="name">Asteroids</span>
+        <span class="desc">Fly, rotate and shoot the drifting rocks apart.</span>
+      </a>
+      <a class="card" href="doodle-jump.html">
+        <span class="icon">&#129008;</span>
+        <span class="name">Doodle Jump</span>
+        <span class="desc">Bounce ever upward across platforms without falling.</span>
+      </a>
+      <a class="card" href="pac-man.html">
+        <span class="icon">&#128123;</span>
+        <span class="name">Pac-Man</span>
+        <span class="desc">Eat all dots, avoid ghosts. Power pellets turn the tables.</span>
+      </a>
+      <a class="card" href="frogger.html">
+        <span class="icon">&#128056;</span>
+        <span class="name">Frogger</span>
+        <span class="desc">Hop across traffic and rivers to reach the goal.</span>
+      </a>
+      <a class="card" href="bubble-shooter.html">
+        <span class="icon">&#128308;</span>
+        <span class="name">Bubble Shooter</span>
+        <span class="desc">Match 3+ bubbles to pop them and clear the board.</span>
+      </a>
+      <a class="card" href="maze.html">
+        <span class="icon">&#128681;</span>
+        <span class="name">Maze Escape</span>
+        <span class="desc">Navigate procedural mazes and reach the exit fast.</span>
+      </a>
+      <a class="card" href="word-search.html">
+        <span class="icon">&#128269;</span>
+        <span class="name">Word Search</span>
+        <span class="desc">Find hidden words in the grid. Horizontal, vertical, diagonal.</span>
+      </a>
+      <a class="card" href="lights-out.html">
+        <span class="icon">&#128161;</span>
+        <span class="name">Lights Out</span>
+        <span class="desc">Toggle lights to turn them all off. Classic puzzle.</span>
+      </a>
+      <a class="card" href="car-dodge.html">
+        <span class="icon">&#128664;</span>
+        <span class="name">Car Dodge</span>
+        <span class="desc">Switch lanes and avoid oncoming traffic at high speed.</span>
+      </a>
+      <a class="card" href="helicopter.html">
+        <span class="icon">&#128641;</span>
+        <span class="name">Helicopter</span>
+        <span class="desc">Hold to rise, release to fall. Fly through the cave.</span>
+      </a>
+      <a class="card" href="color-match.html">
+        <span class="icon">&#127912;</span>
+        <span class="name">Color Match</span>
+        <span class="desc">Stroop test: click the word's color, not the word itself.</span>
+      </a>
+      <a class="card" href="nonogram.html">
+        <span class="icon">&#128310;</span>
+        <span class="name">Nonogram</span>
+        <span class="desc">Fill the grid using number clues. Classic picross puzzle.</span>
+      </a>
+    </main>
+    <footer>Made with vanilla HTML, CSS &amp; JS. All games run fully offline.</footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maze Escape — FreeGroup</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2340 0%, #0d1120 55%, #090b14 100%);
+    color: #e8ecf8; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 16px;
+  }
+  h1 { font-size: 1.6rem; background: linear-gradient(90deg, #6ee7f9, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hud { display: flex; gap: 22px; font-size: 0.95rem; align-items: center; }
+  .hud span b { color: #6ee7f9; }
+  .wrap { position: relative; }
+  canvas { background: #05070f; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; box-shadow: 0 0 60px rgba(74,222,128,0.08); touch-action: none; max-width: 100%; display: block; }
+  button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: #e8ecf8; padding: 8px 18px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+  button:hover { background: rgba(110,231,249,0.15); }
+  .hint { color: #9aa3bf; font-size: 0.8rem; text-align: center; }
+  #overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(9,11,20,0.82); border-radius: 12px; }
+  #overlay.show { display: flex; }
+  #overlay .panel { text-align: center; padding: 24px 32px; }
+  #overlay h2 { font-size: 1.8rem; margin-bottom: 8px; }
+  #overlay p { color: #9aa3bf; margin-bottom: 16px; }
+.fg-back{position:fixed;z-index:99;top:10px;left:10px;padding:7px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(13,17,32,.78);color:#e8ecf8;text-decoration:none;font:600 13px system-ui,sans-serif;backdrop-filter:blur(6px)}
+.fg-back:hover{background:rgba(110,231,249,.2)}
+.fg-back:focus-visible{outline:2px solid #6ee7f9;outline-offset:2px}
+</style>
+</head>
+<body>
+  <a class="fg-back" href="index.html">← Mini Games</a>
+  <h1>Maze Escape</h1>
+  <div class="hud">
+    <span>Time: <b id="time">0</b>s</span>
+    <span>Level: <b id="level">1</b></span>
+    <span>Best: <b id="best">0</b>s</span>
+    <button id="mute">Sound: On</button>
+  </div>
+  <div class="wrap">
+    <canvas id="game" width="500" height="500"></canvas>
+    <div id="overlay"><div class="panel"><h2 id="oTitle">Level Complete!</h2><p id="oText">Time: 0s</p><button id="oBtn">Next Level</button></div></div>
+  </div>
+  <div class="hint">Arrows / WASD or swipe to move &middot; reach the green exit</div>
+
+<script src="sfx.js"></script>
+<script>
+(function () {
+  const TILE = 25, SIZE = 20;
+  const W = SIZE * TILE, H = SIZE * TILE;
+  const canvas = document.getElementById('game'); canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const timeEl = document.getElementById('time'), levelEl = document.getElementById('level'), bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay'), oText = document.getElementById('oText'), oTitle = document.getElementById('oTitle');
+  const muteBtn = document.getElementById('mute');
+  const sfx = window.SFX || { move(){}, win(){}, levelup(){}, toggleMute(){ return false; } };
+
+  let grid, player, exit, level, startTime, elapsed, running, animT;
+  let best = 0;
+  try { best = parseInt(localStorage.getItem('mazeBest') || '0', 10) || 0; } catch (e) { /* ignore */ }
+  bestEl.textContent = best;
+
+  function generateMaze() {
+    // Recursive backtracker
+    grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(1));
+    const stack = [{ r: 1, c: 1 }];
+    grid[1][1] = 0;
+    while (stack.length) {
+      const cur = stack[stack.length - 1];
+      const neighbors = [];
+      const dirs = [[0, 2], [2, 0], [0, -2], [-2, 0]];
+      for (const [dr, dc] of dirs) {
+        const nr = cur.r + dr, nc = cur.c + dc;
+        if (nr > 0 && nr < SIZE - 1 && nc > 0 && nc < SIZE - 1 && grid[nr][nc] === 1) neighbors.push({ nr, nc, mr: cur.r + dr/2, mc: cur.c + dc/2 });
+      }
+      if (neighbors.length) {
+        const { nr, nc, mr, mc } = neighbors[Math.floor(Math.random() * neighbors.length)];
+        grid[mr][mc] = 0; grid[nr][nc] = 0;
+        stack.push({ r: nr, c: nc });
+      } else { stack.pop(); }
+    }
+  }
+
+  function reset() {
+    generateMaze();
+    player = { r: 1, c: 1, px: 1 * TILE, py: 1 * TILE };
+    exit = { r: SIZE - 2, c: SIZE - 2 };
+    grid[exit.r][exit.c] = 0;
+    startTime = Date.now(); elapsed = 0; running = true; animT = 0;
+    levelEl.textContent = level; overlay.classList.remove('show');
+  }
+
+  function moveTo(r, c) {
+    if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return;
+    if (grid[r][c] === 1) return;
+    player.r = r; player.c = c; sfx.move();
+    if (r === exit.r && c === exit.c) win();
+  }
+
+  function win() {
+    running = false; elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    if (level === 1 || elapsed < best || best === 0) { best = elapsed; bestEl.textContent = best; try { localStorage.setItem('mazeBest', String(best)); } catch (e) {} }
+    oTitle.textContent = 'Level Complete!'; oText.textContent = 'Time: ' + elapsed + 's';
+    overlay.classList.add('show'); sfx.win();
+  }
+
+  function nextLevel() {
+    level++; reset();
+  }
+
+  function loop() { requestAnimationFrame(loop); if (running) update(); draw(); }
+
+  function update() {
+    animT++;
+    elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    timeEl.textContent = elapsed;
+    player.px += (player.c * TILE - player.px) * 0.3;
+    player.py += (player.r * TILE - player.py) * 0.3;
+  }
+
+  function draw() {
+    ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H);
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+      const x = c * TILE, y = r * TILE;
+      if (grid[r][c] === 1) { ctx.fillStyle = '#1e2a52'; ctx.fillRect(x, y, TILE, TILE); ctx.strokeStyle = '#3b4fa0'; ctx.lineWidth = 1; ctx.strokeRect(x, y, TILE, TILE); }
+      else { ctx.fillStyle = 'rgba(255,255,255,0.02)'; ctx.fillRect(x, y, TILE, TILE); }
+    }
+    // exit
+    const ex = exit.c * TILE, ey = exit.r * TILE;
+    const pulse = Math.sin(animT * 0.08) * 3;
+    ctx.fillStyle = '#4ade80'; ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 12 + pulse;
+    ctx.fillRect(ex + 3, ey + 3, TILE - 6, TILE - 6);
+    ctx.shadowBlur = 0;
+    // player
+    const px = player.px + TILE/2, py = player.py + TILE/2;
+    ctx.fillStyle = '#6ee7f9'; ctx.shadowColor = '#6ee7f9'; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.arc(px, py, TILE/2 - 4, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (!running) return; const k = e.key.toLowerCase();
+    if (['arrowup','w'].includes(k)) { moveTo(player.r - 1, player.c); e.preventDefault(); }
+    else if (['arrowdown','s'].includes(k)) { moveTo(player.r + 1, player.c); e.preventDefault(); }
+    else if (['arrowleft','a'].includes(k)) { moveTo(player.r, player.c - 1); e.preventDefault(); }
+    else if (['arrowright','d'].includes(k)) { moveTo(player.r, player.c + 1); e.preventDefault(); }
+  });
+  let ts = null;
+  canvas.addEventListener('touchstart', (e) => { ts = { x: e.touches[0].clientX, y: e.touches[0].clientY }; e.preventDefault(); }, { passive: false });
+  canvas.addEventListener('touchend', (e) => {
+    if (!ts || !running) return; const dx = e.changedTouches[0].clientX - ts.x, dy = e.changedTouches[0].clientY - ts.y;
+    if (Math.abs(dx) > Math.abs(dy)) { if (dx > 0) moveTo(player.r, player.c + 1); else moveTo(player.r, player.c - 1); }
+    else { if (dy > 0) moveTo(player.r + 1, player.c); else moveTo(player.r - 1, player.c); }
+    ts = null; e.preventDefault();
+  }, { passive: false });
+
+  document.getElementById('oBtn').addEventListener('click', nextLevel);
+  muteBtn.addEventListener('click', () => { const m = sfx.toggleMute(); muteBtn.textContent = 'Sound: ' + (m ? 'Off' : 'On'); });
+
+  level = 1;
+  reset();
+  loop();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Bird — FreeGroup</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1b2340 0%, #0d1120 55%, #090b14 100%);
+    color: #e8ecf8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 16px;
+  }
+  h1 { font-size: 1.6rem; background: linear-gradient(90deg, #6ee7f9, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hud { display: flex; gap: 22px; font-size: 0.95rem; }
+  .hud span b { color: #6ee7f9; }
+  canvas {
+    background: linear-gradient(180deg, #0d1b2e, #0a0e1a);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    box-shadow: 0 0 40px rgba(110, 231, 249, 0.08);
+    max-width: 100%;
+    touch-action: none;
+    cursor: pointer;
+  }
+  .controls { display: flex; gap: 10px; }
+  button {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #e8ecf8;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  button:hover { background: rgba(110,231,249,0.15); }
+  .hint { color: #9aa3bf; font-size: 0.8rem; }
+  #overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(9,11,20,0.85); z-index: 10; }
+  #overlay.show { display: flex; }
+  #overlay .panel { text-align: center; padding: 28px 36px; }
+  #overlay h2 { font-size: 2rem; margin-bottom: 8px; }
+  #overlay p { color: #9aa3bf; margin-bottom: 18px; }
+.fg-back{position:fixed;z-index:99;top:10px;left:10px;padding:7px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(13,17,32,.78);color:#e8ecf8;text-decoration:none;font:600 13px system-ui,sans-serif;backdrop-filter:blur(6px)}
+.fg-back:hover{background:rgba(110,231,249,.2)}
+.fg-back:focus-visible{outline:2px solid #6ee7f9;outline-offset:2px}
+</style>
+</head>
+<body>
+  <a class="fg-back" href="index.html">← Mini Games</a>
+  <h1>Flappy Bird</h1>
+  <div class="hud">
+    <span>Score: <b id="score">0</b></span>
+    <span>Best: <b id="best">0</b></span>
+  </div>
+  <canvas id="game" width="420" height="560"></canvas>
+  <div class="controls">
+    <button id="restart">Restart</button>
+  </div>
+  <div class="hint">Tap / click / Space to flap</div>
+
+  <div id="overlay">
+    <div class="panel">
+      <h2>Game Over</h2>
+      <p id="overlayText">Score: 0</p>
+      <button id="overlayBtn">Play Again</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const W = 420, H = 560;
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlayBtn = document.getElementById('overlayBtn');
+
+  let best = 0;
+  try { best = parseInt(localStorage.getItem('flappyBest') || '0', 10) || 0; } catch (e) { /* ignore */ }
+  bestEl.textContent = best;
+
+  const GRAVITY = 0.45, FLAP = -8.5;
+  const PIPE_W = 62, PIPE_GAP = 170, PIPE_SPEED = 3.2;
+  const BIRD_X = 110;
+
+  let bird, pipes, score, alive, rafId, frame, started;
+
+  function reset() {
+    bird = { y: H / 2, vy: 0, r: 14 };
+    pipes = [];
+    score = 0;
+    alive = true;
+    started = false;
+    frame = 0;
+    overlay.classList.remove('show');
+    scoreEl.textContent = '0';
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function flap() {
+    if (!alive) return;
+    started = true;
+    bird.vy = FLAP;
+  }
+
+  function spawnPipe() {
+    const topH = 70 + Math.random() * (H - PIPE_GAP - 160);
+    pipes.push({ x: W, top: topH, gap: PIPE_GAP, scored: false });
+  }
+
+  function loop() {
+    rafId = requestAnimationFrame(loop);
+    if (!alive) return;
+    frame++;
+
+    if (started) {
+      bird.vy += GRAVITY;
+      bird.y += bird.vy;
+    } else {
+      // idle bobbing
+      bird.y = H / 2 + Math.sin(frame * 0.08) * 12;
+    }
+
+    // spawn pipes
+    if (frame % 95 === 0) spawnPipe();
+
+    // move pipes
+    for (const p of pipes) p.x -= PIPE_SPEED;
+    pipes = pipes.filter(p => p.x > -PIPE_W);
+
+    // scoring
+    for (const p of pipes) {
+      if (!p.scored && p.x + PIPE_W < BIRD_X) {
+        p.scored = true;
+        score++;
+        scoreEl.textContent = score;
+        if (score > best) {
+          best = score;
+          bestEl.textContent = best;
+          try { localStorage.setItem('flappyBest', String(best)); } catch (e) { /* ignore */ }
+        }
+      }
+    }
+
+    // collisions
+    if (bird.y - bird.r <= 0 || bird.y + bird.r >= H) { die(); return; }
+    for (const p of pipes) {
+      const inX = BIRD_X + bird.r > p.x && BIRD_X - bird.r < p.x + PIPE_W;
+      if (inX) {
+        const inGap = bird.y > p.top + bird.r && bird.y < p.top + p.gap - bird.r;
+        if (!inGap) { die(); return; }
+      }
+    }
+
+    draw();
+  }
+
+  function die() {
+    alive = false;
+    cancelAnimationFrame(rafId);
+    rafId = null;
+    overlayText.textContent = 'Score: ' + score + (score >= best ? ' (new best!)' : '');
+    overlay.classList.add('show');
+  }
+
+  function draw() {
+    ctx.fillStyle = '#0a0e1a';
+    ctx.fillRect(0, 0, W, H);
+    // faint ground
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    ctx.fillRect(0, H - 40, W, 40);
+
+    // pipes
+    for (const p of pipes) {
+      const grad = ctx.createLinearGradient(p.x, 0, p.x + PIPE_W, 0);
+      grad.addColorStop(0, '#166534');
+      grad.addColorStop(0.5, '#22c55e');
+      grad.addColorStop(1, '#166534');
+      ctx.fillStyle = grad;
+      ctx.fillRect(p.x, 0, PIPE_W, p.top);
+      ctx.fillRect(p.x, p.top + p.gap, PIPE_W, H - p.top - p.gap);
+      // cap
+      ctx.fillStyle = '#16a34a';
+      ctx.fillRect(p.x - 3, p.top - 18, PIPE_W + 6, 18);
+      ctx.fillRect(p.x - 3, p.top + p.gap, PIPE_W + 6, 18);
+    }
+
+    // bird
+    const wing = Math.sin(frame * 0.3) * 0.5 + 0.5;
+    ctx.save();
+    ctx.translate(BIRD_X, bird.y);
+    ctx.rotate(Math.max(-0.5, Math.min(0.8, bird.vy * 0.05)));
+    ctx.fillStyle = '#facc15';
+    ctx.shadowColor = '#facc15';
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.arc(0, 0, bird.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(-4, 2, bird.r * 0.45, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fb923c';
+    ctx.beginPath();
+    ctx.moveTo(bird.r * 0.7, 0);
+    ctx.lineTo(bird.r * 1.5, 3);
+    ctx.lineTo(bird.r * 0.7, 7);
+    ctx.closePath();
+    ctx.fill();
+    // wing
+    ctx.fillStyle = '#eab308';
+    ctx.beginPath();
+    ctx.ellipse(-4, -6 + wing * 4, 8, 5 + wing * 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // eye
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(6, -4, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0d1120';
+    ctx.beginPath();
+    ctx.arc(8, -4, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    if (!started) {
+      ctx.fillStyle = 'rgba(232,236,248,0.85)';
+      ctx.font = '18px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Tap / click to start', W / 2, H / 2 + 90);
+    }
+  }
+
+  canvas.addEventListener('click', flap);
+  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); flap(); }, { passive: false });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key.toLowerCase() === 'w' || e.key === 'ArrowUp') { e.preventDefault(); flap(); }
+  });
+
+  document.getElementById('restart').addEventListener('click', reset);
+  overlayBtn.addEventListener('click', reset);
+
+  reset();
+})();
+</script>
+</body>
+</html>
