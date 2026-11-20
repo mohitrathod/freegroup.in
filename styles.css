@@ -385,46 +385,79 @@ h1 span {
 .game-art-baby-phone {
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #ffe1a5, #ffd8dc);
+  background: linear-gradient(135deg, #eff9cf, #d8f4ec);
 }
 
-.mini-phone {
-  display: grid;
-  width: 92px;
-  gap: 7px;
-  padding: 8px;
-  border: 5px solid #e58b50;
-  border-radius: 17px;
-  background: #ffe989;
-  box-shadow: 0 8px 18px #985c3b38;
-  transform: rotate(-8deg);
+.phone-card-preview {
+  position: relative;
+  width: 80px;
+  height: 154px;
+  padding: 10px 7px 8px;
+  border: 3px solid #e89556;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #ffe27c, #ffd25e);
+  box-shadow: 0 6px 0 #d98349, inset 0 2px 3px #fff0a8;
 }
 
-.mini-phone-face {
+.phone-card-preview::before,
+.phone-card-preview::after {
+  position: absolute;
+  z-index: 0;
+  top: 28px;
+  width: 6px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f5ae69;
+  content: "";
+}
+
+.phone-card-preview::before {
+  left: -9px;
+}
+
+.phone-card-preview::after {
+  right: -9px;
+}
+
+.phone-card-mode {
+  margin: 5px auto 0;
+  color: #806b36;
+  font-size: 6px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.phone-card-screen {
+  position: relative;
+  z-index: 1;
   display: grid;
-  height: 36px;
+  height: 42px;
   place-items: center;
-  border-radius: 7px;
-  background: #9de0df;
-  font-size: 23px;
+  border: 2px solid #81c7bb;
+  border-radius: 9px;
+  background: linear-gradient(145deg, #c9f0da, #a4e1d5);
+  font-size: 20px;
 }
 
-.mini-phone-keys {
+.phone-card-keys {
   display: grid;
+  width: 84%;
   grid-template-columns: repeat(3, 1fr);
   gap: 3px;
+  margin: 4px auto 0;
 }
 
-.mini-phone-keys i {
+.phone-card-keys span {
   display: grid;
-  height: 17px;
-  place-items: center;
-  border-radius: 4px;
-  background: #fff8df;
-  color: #825743;
+  aspect-ratio: 1;
+  border: 1px solid #fff;
+  border-radius: 7px;
+  background: #fffaf0;
+  box-shadow: 0 2px 0 #e7c977;
+  color: #6a594e;
   font-size: 8px;
-  font-style: normal;
-  font-weight: 800;
+  font-weight: 900;
+  place-items: center;
 }
 
 .coin-preview {

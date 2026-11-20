@@ -613,7 +613,20 @@
           ]
         },
       ];
+      const togetherSong = {
+        title: "The More We Get Together",
+        icon: "🤝",
+        notes: [
+          67, 67, 69, 67, 72, 71, 69, 67,
+          64, 64, 65, 64, 69, 67, null, null,
+          67, 67, 69, 67, 72, 71, 69, 67,
+          64, 64, 65, 64, 62, null, null, null,
+          67, 67, 69, 67, 72, 71, 69, 67,
+          64, 64, 65, 64, 69, 67
+        ]
+      };
       const midiFrequency = (note) => 440 * Math.pow(2, (note - 69) / 12);
+      const numberMidiNotes = [60, 62, 64, 65, 67, 69, 71, 72, 74];
       function makeTune(song, beat = .22, repeats = 2) {
         const notes = [];
         const chordRoots = [60, 65, 67, 60, 62, 67, 65, 60];
@@ -689,7 +702,7 @@
           const number = Math.floor(Math.random() * 9) + 1;
           return {
             face: String(number), text: `Number ${number}!`, color: "#c5e8a4",
-            notes: [[261.63 * Math.pow(2, (number - 1) / 12), 0, .24]]
+            notes: [[midiFrequency(numberMidiNotes[number - 1]), 0, .24]]
           };
         },
         hello: () => {
@@ -992,20 +1005,26 @@
         avatar.hidden = true;
         message.hidden = true;
         modeFunctions.hidden = false;
-        modeFunctions.textContent = Array.from({ length: 3 }, (_, row) => {
+        const keyGuide = Array.from({ length: 3 }, (_, row) => {
           const firstIndex = row * 3;
           return selectedMode.keys
             .slice(firstIndex, firstIndex + 3)
             .map((key, index) => `${firstIndex + index + 1} ${key.label}`)
             .join("   ·   ");
         }).join("\n");
+        modeFunctions.textContent = activePhoneMode === 0 ? `${keyGuide}\n0 Together` : keyGuide;
         modeButton.setAttribute("aria-label", `Change button mode. Current mode: ${selectedMode.title}`);
         phoneKeys.forEach((button, index) => {
           if (index >= 9) {
             const dialLabel = ["*", "0", "#"][index - 9];
             button.querySelector(".key-disc").textContent = dialLabel;
             button.querySelector(".key-number").textContent = "";
-            button.setAttribute("aria-label", `Phone key ${dialLabel}`);
+            button.setAttribute(
+              "aria-label",
+              activePhoneMode === 0 && dialLabel === "0"
+                ? `Play ${togetherSong.title}`
+                : `Phone key ${dialLabel}`
+            );
             return;
           }
           const key = selectedMode.keys[index];
@@ -1018,6 +1037,18 @@
       function playPhoneKey(button) {
         lastPhoneKey = button;
         const dialIndex = Number(button.dataset.phoneKey);
+        if (dialIndex === 10 && activePhoneMode === 0) {
+          modeFunctions.hidden = true;
+          avatar.hidden = false;
+          message.hidden = false;
+          playResponse({
+            face: togetherSong.icon,
+            text: togetherSong.title,
+            color: "#f6b6dc",
+            notes: makeTune(togetherSong)
+          });
+          return;
+        }
         if (dialIndex >= 9) {
           const dial = ["*", "0", "#"][dialIndex - 9];
           const frequency = dial === "*" ? 740 : dial === "#" ? 880 : 261.63;
@@ -1043,7 +1074,7 @@
         }
         if (key.type === "number") {
           const digit = Number(key.number);
-          const frequency = key.number === "*" ? 740 : key.number === "#" ? 880 : 261.63 * Math.pow(2, (digit - 1) / 12);
+          const frequency = midiFrequency(numberMidiNotes[digit - 1]);
           playResponse({
             face: key.number,
             text: `Number ${key.number}!`,
