@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Bird Hop</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#80d8f5;display:flex;justify-content:center;align-items:center;min-height:100dvh;font-family:system-ui;color:#17334b}
+#game{position:relative;width:min(100vw,480px);height:min(100dvh,850px);overflow:hidden;background:linear-gradient(#66cef2,#b8f0ff);touch-action:manipulation}
+canvas{width:100%;height:100%;display:block}
+#overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#16415a25;text-align:center}
+.panel{background:#fff5bd;border:4px solid #24384d;border-radius:16px;padding:18px 26px;box-shadow:5px 5px 0 #24384d;max-width:90%}
+h1{margin:0 0 10px;color:#f59e0b;font-size:34px;text-shadow:2px 2px #23384d}p{margin:5px 0 14px;font-weight:700}
+button{border:3px solid #26384b;background:#ffad23;border-radius:12px;padding:12px 28px;font-weight:900;font-size:20px;color:#25374a;box-shadow:3px 3px 0 #25374a}
+</style></head><body><div id="game"><canvas id="c"></canvas><div id="overlay"><div class="panel"><h1>🐤 BIRD HOP</h1><p>Tap anywhere to flap!</p><button id="play">PLAY</button></div></div></div>
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d'),ov=document.getElementById('overlay');
+let W,H, bird, pipes,score,best=+(localStorage.birdhopbest||0),running=false,started=false,frame=0,ground=70;
+function resize(){let r=document.getElementById('game').getBoundingClientRect();W=canvas.width=r.width;H=canvas.height=r.height;ground=H*.09}window.addEventListener('resize',resize);resize();
+function reset(){bird={x:W*.28,y:H*.44,v:0};pipes=[];score=0;frame=0;started=true;running=true;ov.style.display='none';loop()}
+function flap(){if(!running)return;bird.v=-H*.0068}
+document.getElementById('play').onclick=reset;
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();if(!running){reset()}else flap()});
+function pipe(){let gap=H*.23, top=H*.15+Math.random()*(H*.48);pipes.push({x:W+70,top,gap,passed:false})}
+function drawBird(){ctx.save();ctx.translate(bird.x,bird.y);ctx.rotate(Math.min(.6,Math.max(-.5,bird.v*.07)));ctx.fillStyle='#ffce35';ctx.strokeStyle='#26384b';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(0,0,19,16,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(8,-6,7,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#26384b';ctx.beginPath();ctx.arc(10,-6,2.8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ff754b';ctx.beginPath();ctx.moveTo(15,2);ctx.lineTo(30,6);ctx.lineTo(15,10);ctx.fill();ctx.fillStyle='#f5a623';ctx.beginPath();ctx.ellipse(-7,5,8,5,-.5,0,Math.PI*2);ctx.fill();ctx.restore()}
+function drawPipe(x,y,h,top){ctx.fillStyle='#50bc39';ctx.strokeStyle='#245437';ctx.lineWidth=4;ctx.fillRect(x,y,58,h);ctx.strokeRect(x,y,58,h);ctx.fillStyle='#8be34c';ctx.fillRect(x+8,y,10,h);let cap=top?y+h-22:y;ctx.fillStyle='#60ce3e';ctx.fillRect(x-7,cap,72,22);ctx.strokeRect(x-7,cap,72,22)}
+function loop(){if(!running)return;frame++;ctx.clearRect(0,0,W,H);
+ // clouds and skyline, simple parallax
+ ctx.fillStyle='#f3ffff';for(let i=0;i<4;i++){let x=(i*190-frame*.35)%(W+130)-70,y=H*.16+i*H*.11;ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.arc(x+25,y-10,29,0,Math.PI*2);ctx.arc(x+52,y,20,0,Math.PI*2);ctx.fill()}
+ ctx.fillStyle='#87c9e5';for(let i=0;i<12;i++){let x=i*W/10;ctx.fillRect(x,H-ground-100-(i%4)*17,W/13,100+(i%4)*17)}
+ ctx.fillStyle='#57c77d';ctx.beginPath();ctx.moveTo(0,H-ground);for(let x=0;x<W+30;x+=30){ctx.lineTo(x,H-ground-10-Math.sin(x*.04)*13)}ctx.lineTo(W,H-ground);ctx.fill();
+ if(frame%100===1)pipe();
+ pipes.forEach(p=>{p.x-=W*.0043;drawPipe(p.x,0,p.top,true);drawPipe(p.x,p.top+p.gap,H-ground-(p.top+p.gap),false);
+ if(!p.passed&&p.x+58<bird.x){p.passed=true;score++}
+ if(bird.x+14>p.x&&bird.x-14<p.x+58&&(bird.y-13<p.top||bird.y+13>p.top+p.gap))die()});
+ pipes=pipes.filter(p=>p.x>-100);
+ bird.v+=H*.00028;bird.y+=bird.v;
+ drawBird();
+ // ground
+ ctx.fillStyle='#76ce43';ctx.fillRect(0,H-ground,W,ground);ctx.fillStyle='#429b35';ctx.fillRect(0,H-ground, W,8);ctx.fillStyle='#d5a74c';ctx.fillRect(0,H-ground+8,W,6);
+ ctx.fillStyle='#fff3b3';ctx.font='bold 32px system-ui';ctx.textAlign='center';ctx.fillText(score,W/2,55);ctx.fillStyle='#244257';ctx.font='bold 16px system-ui';ctx.fillText('BEST '+best,W-75,35);
+ if(bird.y>H-ground-12||bird.y<0)die();
+ if(running)requestAnimationFrame(loop)}
+function die(){if(!running)return;running=false;if(score>best){best=score;localStorage.birdhopbest=best}ov.style.display='flex';ov.innerHTML=`<div class="panel"><h1>GAME OVER</h1><p>Score: ${score} &nbsp; Best: ${best}</p><button onclick="reset()">PLAY AGAIN</button></div>`}
+</script></body></html>
