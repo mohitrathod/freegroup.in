@@ -50,17 +50,11 @@ a {
 }
 
 .wordmark-mark {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border-radius: 9px;
-  background: var(--green);
-  color: white;
-  font-family: "Manrope", sans-serif;
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1;
+  display: block;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  background: transparent;
 }
 
 .header-link {
@@ -208,18 +202,10 @@ h1 span {
   position: absolute;
   top: 50%;
   left: 50%;
-  display: grid;
   width: 25%;
   aspect-ratio: 1;
-  place-items: center;
-  border-radius: 32%;
-  background: var(--green);
-  box-shadow: 0 14px 38px #2b664c30;
-  color: white;
-  font-family: "Manrope", sans-serif;
-  font-size: clamp(50px, 7vw, 82px);
-  font-weight: 800;
-  line-height: 1;
+  background: transparent;
+  filter: drop-shadow(0 14px 24px #2b664c55);
   transform: translate(-50%, -50%);
 }
 
@@ -771,8 +757,7 @@ h2 span {
 .footer-wordmark .wordmark-mark {
   width: 24px;
   height: 24px;
-  border-radius: 7px;
-  font-size: 17px;
+  background: transparent;
 }
 
 .site-footer p,

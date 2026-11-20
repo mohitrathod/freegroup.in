@@ -186,6 +186,34 @@
       const tank = document.getElementById("tank");
       const fishTypes = ["🐠", "🐟", "🐡", "🐬"];
       const maxFish = 24;
+      let audioContext;
+
+      function playTapSound() {
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          audioContext = audioContext || new AudioContextClass();
+          if (audioContext.state === "suspended") audioContext.resume();
+          const now = audioContext.currentTime;
+          const bubble = (from, to, volume, delay, length) => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(from, now + delay);
+            osc.frequency.exponentialRampToValueAtTime(to, now + delay + length);
+            gain.gain.setValueAtTime(0, now + delay);
+            gain.gain.linearRampToValueAtTime(volume, now + delay + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + length);
+            osc.connect(gain).connect(audioContext.destination);
+            osc.start(now + delay);
+            osc.stop(now + delay + length + 0.02);
+          };
+          bubble(520, 220, 0.12, 0, 0.16);
+          bubble(700, 980, 0.05, 0.05, 0.1);
+        } catch (error) {
+          return;
+        }
+      }
 
       function addFish(x, y) {
         const existingFish = tank.querySelectorAll(".fish");
@@ -199,7 +227,7 @@
         fish.setAttribute("aria-hidden", "true");
         fish.style.left = `${Math.max(20, Math.min(x, bounds.width - 20))}px`;
         fish.style.top = `${Math.max(48, Math.min(y, bounds.height - 70))}px`;
-        fish.style.setProperty("--facing", String(direction));
+        fish.style.setProperty("--facing", String(-direction));
         fish.style.setProperty("--distance", `${direction * bounds.width}px`);
         fish.style.setProperty("--duration", `${8 + Math.random() * 5}s`);
         fish.addEventListener("animationend", () => fish.remove(), { once: true });
@@ -208,6 +236,7 @@
 
       tank.addEventListener("pointerdown", (event) => {
         if (event.target.closest("a")) return;
+        playTapSound();
         const bounds = tank.getBoundingClientRect();
         addFish(event.clientX - bounds.left, event.clientY - bounds.top);
       });
@@ -215,6 +244,7 @@
       tank.addEventListener("keydown", (event) => {
         if (event.target !== tank || (event.key !== "Enter" && event.key !== " ")) return;
         event.preventDefault();
+        playTapSound();
         addFish(tank.clientWidth / 2, tank.clientHeight / 2);
       });
 
