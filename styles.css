@@ -460,6 +460,99 @@ h1 span {
   place-items: center;
 }
 
+.game-art-sunset-run {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(#2a1450 0%, #8a2d6b 40%, #ff6a4d 75%, #ffc070 100%);
+}
+
+.sunset-card-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sunset-card-preview::before {
+  position: absolute;
+  right: -20%;
+  bottom: -90%;
+  left: -20%;
+  height: 130%;
+  border-radius: 50% 50% 0 0;
+  background: repeating-linear-gradient(90deg, #d69a60 0 40px, #c98a52 40px 80px);
+  content: "";
+  transform: perspective(160px) rotateX(35deg);
+}
+
+.sunset-sun {
+  position: absolute;
+  top: 42px;
+  left: 50%;
+  font-size: 46px;
+  transform: translateX(-50%);
+}
+
+.sunset-car {
+  position: absolute;
+  bottom: 34px;
+  left: 50%;
+  font-size: 52px;
+  filter: drop-shadow(0 6px 4px #1a0f2e80);
+  transform: translateX(-50%);
+}
+
+.game-art-brick-bounce {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(#14122b, #2a1c52);
+}
+
+.brick-card-preview {
+  display: flex;
+  width: 220px;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding-top: 24px;
+}
+
+.brick-row {
+  display: flex;
+  gap: 4px;
+}
+
+.brick-row i {
+  width: 30px;
+  height: 16px;
+  border-radius: 3px;
+  background: #ff8a3d;
+  box-shadow: inset 0 -3px 0 #c25a1e;
+}
+
+.brick-row:nth-child(2) i {
+  background: #ffd166;
+  box-shadow: inset 0 -3px 0 #c9971e;
+}
+
+.brick-ball {
+  width: 12px;
+  height: 12px;
+  margin-top: 22px;
+  border-radius: 50%;
+  background: #f4f1ff;
+  box-shadow: 0 0 10px #f4f1ff80;
+}
+
+.brick-paddle {
+  width: 62px;
+  height: 10px;
+  margin-top: 18px;
+  border-radius: 5px;
+  background: #6ee7d0;
+  box-shadow: inset 0 -3px 0 #2aa58f;
+}
+
 .coin-preview {
   display: grid;
   width: 100px;
