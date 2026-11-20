@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Bird Hop</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#80d8f5;display:flex;justify-content:center;align-items:center;min-height:100dvh;font-family:system-ui;color:#17334b}
 #game{position:relative;width:min(100vw,480px);height:min(100dvh,850px);overflow:hidden;background:linear-gradient(#66cef2,#b8f0ff);touch-action:manipulation}
@@ -8,7 +12,8 @@ canvas{width:100%;height:100%;display:block}
 .panel{background:#fff5bd;border:4px solid #24384d;border-radius:16px;padding:18px 26px;box-shadow:5px 5px 0 #24384d;max-width:90%}
 h1{margin:0 0 10px;color:#f59e0b;font-size:34px;text-shadow:2px 2px #23384d}p{margin:5px 0 14px;font-weight:700}
 button{border:3px solid #26384b;background:#ffad23;border-radius:12px;padding:12px 28px;font-weight:900;font-size:20px;color:#25374a;box-shadow:3px 3px 0 #25374a}
-</style></head><body><div id="game"><canvas id="c"></canvas><div id="overlay"><div class="panel"><h1>🐤 BIRD HOP</h1><p>Tap anywhere to flap!</p><button id="play">PLAY</button></div></div></div>
+.home-link{position:absolute;z-index:2;top:10px;left:10px;padding:6px 10px;border:3px solid #26384b;border-radius:10px;background:#fff5bd;color:#17334b;font-size:13px;font-weight:900;text-decoration:none;box-shadow:3px 3px 0 #26384b}
+</style></head><body><div id="game"><a class="home-link" href="../index.html" aria-label="Back to FreeGroup">← FreeGroup</a><canvas id="c"></canvas><div id="overlay"><div class="panel"><h1>🐤 BIRD HOP</h1><p>Tap anywhere to flap!</p><button id="play">PLAY</button></div></div></div>
 <script>
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d'),ov=document.getElementById('overlay');
 let W,H, bird, pipes,score,best=+(localStorage.birdhopbest||0),running=false,started=false,frame=0,ground=70;
