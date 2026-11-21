@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Text to Speech — FreeGroup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="../favicon-32.png" type="image/png" sizes="32x32">
+    <link rel="icon" href="../favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            color: #37302a;
+            background: #fff8e6;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 16px;
+            background: #fff8e6;
+        }
+
+        .home-link {
+            display: inline-block;
+            margin: 0 0 12px;
+            color: #65584e;
+            font-size: 13px;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .tts-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 16px;
+            font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        .tts-container h1 {
+            margin-bottom: 4px;
+        }
+
+        .tts-note {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 16px;
+        }
+
+        .tts-panel {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+            background: #fafafa;
+        }
+
+        .tts-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .tts-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .tts-row label {
+            font-size: 0.9em;
+            color: #333;
+            min-width: 70px;
+        }
+
+        .tts-row select,
+        .tts-row input[type="file"] {
+            font-size: 0.9em;
+        }
+
+        .tts-row select {
+            max-width: 100%;
+            flex: 1;
+            min-width: 220px;
+            padding: 4px;
+        }
+
+        .slider-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .slider-wrap input[type="range"] {
+            flex: 1;
+        }
+
+        .slider-wrap .slider-val {
+            font-family: Inconsolata, monospace;
+            font-size: 0.9em;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        #tts-text {
+            width: 100%;
+            min-height: 260px;
+            box-sizing: border-box;
+            padding: 10px;
+            font-family: 'menlo regular webfont', Inconsolata, monospace;
+            font-size: 0.95em;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            resize: vertical;
+        }
+
+        #tts-reader {
+            width: 100%;
+            min-height: 260px;
+            max-height: 60vh;
+            box-sizing: border-box;
+            overflow-y: auto;
+            padding: 10px;
+            font-family: 'menlo regular webfont', Inconsolata, monospace;
+            font-size: 0.95em;
+            line-height: normal;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #fff;
+        }
+
+        #tts-reader[hidden] {
+            display: none;
+        }
+
+        .tts-reader-active-word {
+            background: #ffe066;
+            color: #222;
+        }
+
+        .tts-file-dragging {
+            outline: 2px dashed #4CAF50;
+            outline-offset: 2px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 18px;
+            margin-right: 8px;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #fff;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #eee;
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            color: #fff;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #43a047;
+        }
+
+        .btn-danger {
+            background: #fff;
+            border-color: #c0392b;
+            color: #c0392b;
+        }
+
+        .tts-status {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #444;
+            min-height: 1.3em;
+        }
+
+        .tts-status-label {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 2px 8px;
+            background: #f0f0f0;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .tts-progress {
+            position: relative;
+            margin-top: 10px;
+            height: 16px;
+            cursor: pointer;
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .tts-progress-track {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 6px;
+            height: 4px;
+            background: #ccc;
+            border-radius: 2px;
+            transition: height 0.1s ease, top 0.1s ease;
+        }
+
+        .tts-progress:hover .tts-progress-track {
+            height: 8px;
+            top: 4px;
+        }
+
+        .tts-progress-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            background: #4CAF50;
+            border-radius: 2px;
+        }
+
+        .tts-progress:hover .tts-progress-bar {
+            background: #43a047;
+        }
+
+        .tts-progress-scrubber {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 13px;
+            height: 13px;
+            margin: -6.5px 0 0 -6.5px;
+            background: #4CAF50;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.35);
+            transform: scale(0);
+            transition: transform 0.1s ease;
+            pointer-events: none;
+        }
+
+        .tts-progress:hover .tts-progress-scrubber,
+        .tts-progress.scrubbing .tts-progress-scrubber {
+            transform: scale(1);
+        }
+
+        .tts-progress-tooltip {
+            position: absolute;
+            bottom: calc(100% - 4px);
+            transform: translateX(-50%);
+            display: none;
+            padding: 4px 7px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            font-size: 12px;
+            line-height: 1;
+            border-radius: 3px;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .tts-time {
+            margin-top: 2px;
+            font-family: Inconsolata, monospace;
+            font-size: 0.85em;
+            color: #666;
+            text-align: right;
+        }
+
+        .tts-counts {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <a class="home-link" href="../index.html">← FreeGroup</a>
+
+    <div class="tts-container">
+
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <h1 style="margin:0;">Text to Speech</h1>
+            <div class="tts-status" style="margin-top:0;">
+                <span>Status:</span> <span class="tts-status-label" id="tts-status">Idle</span>
+            </div>
+        </div>
+        <p class="tts-note">
+            Runs 100% offline in your browser using the built-in Web Speech API
+            (no uploads, no server, no internet needed after this page loads).
+            Voices come from your operating system &mdash; install more OS voices for more options.
+        </p>
+
+        <div class="tts-panel">
+            <div class="tts-row">
+                <label for="tts-voice">Voice</label>
+                <select id="tts-voice"></select>
+            </div>
+            <div class="tts-row">
+                <label for="tts-rate">Rate</label>
+                <div class="slider-wrap">
+                    <input type="range" id="tts-rate" min="0.5" max="2" step="0.1" value="1">
+                    <span class="slider-val" id="tts-rate-val">1.0&times;</span>
+                </div>
+                <label for="tts-pitch">Pitch</label>
+                <div class="slider-wrap">
+                    <input type="range" id="tts-pitch" min="0" max="2" step="0.1" value="1">
+                    <span class="slider-val" id="tts-pitch-val">1.0</span>
+                </div>
+                <label for="tts-volume">Volume</label>
+                <div class="slider-wrap">
+                    <input type="range" id="tts-volume" min="0" max="1" step="0.05" value="1">
+                    <span class="slider-val" id="tts-volume-val">100%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tts-row">
+            <input type="file" id="tts-file" accept=".txt,.md,.text,text/plain,text/markdown">
+            <button type="button" class="btn" id="tts-paste">&#128203; Paste</button>
+            <button type="button" class="btn" id="tts-clear">Clear</button>
+        </div>
+
+        <div style="margin-top: 4px;">
+            <button type="button" class="btn btn-primary" id="tts-speak">&#9654; Speak</button>
+            <button type="button" class="btn" id="tts-back" disabled>&#9194; Back 10s</button>
+            <button type="button" class="btn" id="tts-pause" disabled>&#10074;&#10074; Pause</button>
+            <button type="button" class="btn" id="tts-resume" disabled>&#9654; Resume</button>
+            <button type="button" class="btn btn-danger" id="tts-stop" disabled>&#9632; Stop</button>
+        </div>
+
+        <div class="tts-progress" id="tts-progress" role="slider" aria-label="Playback position"
+            aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+            <div class="tts-progress-track">
+                <div class="tts-progress-bar" id="tts-progress-bar"></div>
+                <div class="tts-progress-scrubber" id="tts-progress-scrubber"></div>
+            </div>
+            <div class="tts-progress-tooltip" id="tts-progress-tooltip"></div>
+        </div>
+        <div class="tts-time" id="tts-time">0:00 / 0:00</div>
+
+        <textarea id="tts-text" style="margin-top: 12px;" placeholder="Type or paste text here, upload or drop a .txt or .md file, or use the Paste button above. Then click Speak."></textarea>
+        <div id="tts-reader" style="margin-top: 12px;" aria-live="off" hidden></div>
+        <div class="tts-counts" id="tts-counts">0 characters, 0 words</div>
+
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var synth = window.speechSynthesis;
+            var textEl = document.getElementById('tts-text');
+            var readerEl = document.getElementById('tts-reader');
+            var voiceEl = document.getElementById('tts-voice');
+            var rateEl = document.getElementById('tts-rate');
+            var pitchEl = document.getElementById('tts-pitch');
+            var volumeEl = document.getElementById('tts-volume');
+            var fileEl = document.getElementById('tts-file');
+            var speakBtn = document.getElementById('tts-speak');
+            var backBtn = document.getElementById('tts-back');
+            var pauseBtn = document.getElementById('tts-pause');
+            var resumeBtn = document.getElementById('tts-resume');
+            var stopBtn = document.getElementById('tts-stop');
+            var clearBtn = document.getElementById('tts-clear');
+            var statusEl = document.getElementById('tts-status');
+            var progressEl = document.getElementById('tts-progress');
+            var progressBar = document.getElementById('tts-progress-bar');
+            var scrubberEl = document.getElementById('tts-progress-scrubber');
+            var tooltipEl = document.getElementById('tts-progress-tooltip');
+            var timeEl = document.getElementById('tts-time');
+            var countsEl = document.getElementById('tts-counts');
+
+            var chunks = [];
+            var chunkWordStarts = [];
+            var chunkStartOffsets = [];
+            var readerWordSpans = [];
+            var activeReaderWord = null;
+            var chunkIndex = 0;
+            var chunkWordOffset = 0;
+            var totalWords = 0;
+            var lastFrac = 0;
+            var speaking = false;
+            var paused = false;
+            var rafId = null;
+            var scrubbing = false;
+            var currentU = null;
+            var chunkSpeakStart = 0;
+            var pausedAt = 0;
+            var totalPausedMs = 0;
+
+            if (!synth) {
+                statusEl.textContent = 'Not supported';
+                speakBtn.disabled = true;
+                progressEl.style.display = 'none';
+                timeEl.style.display = 'none';
+                return;
+            }
+
+            /* ---------- settings persistence ---------- */
+
+            var STORAGE_KEY = 'tts-settings';
+
+            function loadSettings() {
+                try {
+                    var raw = localStorage.getItem(STORAGE_KEY);
+                    return raw ? JSON.parse(raw) : {};
+                } catch (e) {
+                    return {};
+                }
+            }
+
+            function saveSettings() {
+                try {
+                    var voices = synth.getVoices();
+                    var v = voices[parseInt(voiceEl.value, 10)];
+                    var settings = {
+                        rate: parseFloat(rateEl.value),
+                        pitch: parseFloat(pitchEl.value),
+                        volume: parseFloat(volumeEl.value),
+                        voiceURI: v ? v.voiceURI : null
+                    };
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+                } catch (e) { /* storage unavailable */ }
+            }
+
+            var saveTimer = null;
+
+            function scheduleSave() {
+                if (saveTimer) clearTimeout(saveTimer);
+                saveTimer = setTimeout(function () {
+                    saveTimer = null;
+                    saveSettings();
+                }, 300);
+            }
+
+            function flushSave() {
+                if (!saveTimer) return;
+                clearTimeout(saveTimer);
+                saveTimer = null;
+                saveSettings();
+            }
+
+            var saved = loadSettings();
+
+            if (typeof saved.rate === 'number') rateEl.value = String(saved.rate);
+            if (typeof saved.pitch === 'number') pitchEl.value = String(saved.pitch);
+            if (typeof saved.volume === 'number') volumeEl.value = String(saved.volume);
+
+            function updateSliderLabel(el, valEl, fmt) {
+                valEl.textContent = fmt(parseFloat(el.value));
+            }
+            var rateValEl = document.getElementById('tts-rate-val');
+            var pitchValEl = document.getElementById('tts-pitch-val');
+            var volumeValEl = document.getElementById('tts-volume-val');
+            updateSliderLabel(rateEl, rateValEl, function (v) { return v.toFixed(1) + '\u00d7'; });
+            updateSliderLabel(pitchEl, pitchValEl, function (v) { return v.toFixed(1); });
+            updateSliderLabel(volumeEl, volumeValEl, function (v) { return Math.round(v * 100) + '%'; });
+
+            /* ---------- voices ---------- */
+
+            function populateVoices() {
+                var voices = synth.getVoices();
+                if (!voices.length) {
+                    voiceEl.innerHTML = '<option value="">No voices available yet...</option>';
+                    return;
+                }
+                var selected = voiceEl.value;
+                var selectedURI = null;
+                if (selected !== '') {
+                    var prev = voices[parseInt(selected, 10)];
+                    if (prev) selectedURI = prev.voiceURI;
+                }
+                if (!selectedURI && saved.voiceURI) selectedURI = saved.voiceURI;
+                voiceEl.innerHTML = '';
+                voices.forEach(function (v, i) {
+                    var opt = document.createElement('option');
+                    opt.value = String(i);
+                    opt.textContent = v.name + ' (' + v.lang + ')' + (v.default ? ' — default' : '');
+                    voiceEl.appendChild(opt);
+                });
+                var restored = false;
+                if (selectedURI) {
+                    for (var k = 0; k < voices.length; k++) {
+                        if (voices[k].voiceURI === selectedURI) {
+                            voiceEl.value = String(k);
+                            restored = true;
+                            break;
+                        }
+                    }
+                }
+                if (!restored) {
+                    for (var j = 0; j < voices.length; j++) {
+                        if (voices[j].default && voices[j].lang.indexOf('en') === 0) {
+                            voiceEl.value = String(j);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            populateVoices();
+            synth.addEventListener('voiceschanged', populateVoices);
+
+            /* ---------- sliders ---------- */
+
+            function bindSlider(el, valEl, fmt) {
+                el.addEventListener('input', function () {
+                    valEl.textContent = fmt(parseFloat(el.value));
+                    updateTimes(lastFrac);
+                    scheduleSave();
+                });
+                el.addEventListener('change', flushSave);
+            }
+            bindSlider(rateEl, rateValEl, function (v) { return v.toFixed(1) + '\u00d7'; });
+            bindSlider(pitchEl, pitchValEl, function (v) { return v.toFixed(1); });
+            bindSlider(volumeEl, volumeValEl, function (v) { return Math.round(v * 100) + '%'; });
+            voiceEl.addEventListener('change', function () { flushSave(); });
+
+            /* ---------- progress / seek ---------- */
+
+            function fmtTime(sec) {
+                sec = Math.max(0, Math.round(sec));
+                var m = Math.floor(sec / 60);
+                var s = sec % 60;
+                return m + ':' + (s < 10 ? '0' : '') + s;
+            }
+
+            function totalSeconds() {
+                if (!totalWords) return 0;
+                var r = parseFloat(rateEl.value) || 1;
+                return totalWords / (2.5 * r);
+            }
+
+            function updateTimes(frac) {
+                var total = totalSeconds();
+                timeEl.textContent = fmtTime(frac * total) + ' / ' + fmtTime(total);
+                progressEl.setAttribute('aria-valuetext', timeEl.textContent);
+            }
+
+            function setBar(frac) {
+                lastFrac = Math.max(0, Math.min(1, frac || 0));
+                var pct = (lastFrac * 100) + '%';
+                progressBar.style.width = pct;
+                scrubberEl.style.left = pct;
+                progressEl.setAttribute('aria-valuenow', Math.round(lastFrac * 100));
+                updateTimes(lastFrac);
+            }
+
+            function updateProgressBar() {
+                if (!totalWords) {
+                    setBar(0);
+                    return;
+                }
+                if (!chunks.length || chunkIndex >= chunks.length) {
+                    updateTimes(lastFrac);
+                    return;
+                }
+                var base = chunkWordStarts[chunkIndex] + chunkWordOffset;
+                var end = (chunkIndex + 1 < chunkWordStarts.length) ? chunkWordStarts[chunkIndex + 1] : totalWords;
+                var remaining = Math.max(0, end - base);
+                var r = parseFloat(rateEl.value) || 1;
+                var estMs = remaining / (2.5 * r) * 1000;
+                var ref = paused ? pausedAt : performance.now();
+                var elapsed = Math.max(0, ref - chunkSpeakStart - totalPausedMs);
+                var grown = estMs > 0 ? Math.min(remaining, (elapsed / estMs) * remaining) : remaining;
+                setBar((base + grown) / totalWords);
+            }
+
+            function startProgressLoop() {
+                stopProgressLoop();
+                function tick() {
+                    if (speaking) {
+                        if (!scrubbing) updateProgressBar();
+                        rafId = requestAnimationFrame(tick);
+                    } else {
+                        rafId = null;
+                    }
+                }
+                rafId = requestAnimationFrame(tick);
+            }
+
+            function stopProgressLoop() {
+                if (rafId) {
+                    cancelAnimationFrame(rafId);
+                    rafId = null;
+                }
+            }
+
+            function renderReader(text) {
+                readerEl.textContent = '';
+                readerWordSpans = [];
+                activeReaderWord = null;
+                var tokens = text.match(/\S+|\s+/g) || [];
+                var offset = 0;
+                tokens.forEach(function (token) {
+                    if (/^\s+$/.test(token)) {
+                        readerEl.appendChild(document.createTextNode(token));
+                    } else {
+                        var span = document.createElement('span');
+                        span.textContent = token;
+                        readerEl.appendChild(span);
+                        readerWordSpans.push({
+                            start: offset,
+                            end: offset + token.length,
+                            element: span
+                        });
+                    }
+                    offset += token.length;
+                });
+            }
+
+            function highlightReaderWord(start, end) {
+                var low = 0;
+                var high = readerWordSpans.length;
+                while (low < high) {
+                    var mid = Math.floor((low + high) / 2);
+                    if (readerWordSpans[mid].end <= start) low = mid + 1;
+                    else high = mid;
+                }
+                var word = readerWordSpans[low];
+                if (!word || word.start >= end || word === activeReaderWord) return;
+                if (activeReaderWord) activeReaderWord.element.classList.remove('tts-reader-active-word');
+                activeReaderWord = word;
+                word.element.classList.add('tts-reader-active-word');
+                var readerRect = readerEl.getBoundingClientRect();
+                var wordRect = word.element.getBoundingClientRect();
+                readerEl.scrollTop += wordRect.top - readerRect.top - readerEl.clientTop -
+                    (readerEl.clientHeight - wordRect.height) / 2;
+            }
+
+            function buildChunks() {
+                var text = textEl.value;
+                var speechText = text.replace(/\n/g, ' ');
+                chunks = splitIntoChunks(speechText);
+                chunkWordStarts = [];
+                chunkStartOffsets = [];
+                renderReader(text);
+                var w = 0;
+                var searchFrom = 0;
+                chunks.forEach(function (c) {
+                    chunkWordStarts.push(w);
+                    w += c.trim().split(/\s+/).length;
+                    var start = speechText.indexOf(c, searchFrom);
+                    chunkStartOffsets.push(start);
+                    searchFrom = start + c.length;
+                });
+                totalWords = w;
+            }
+
+            function wordToChunk(targetWord) {
+                var idx = 0;
+                for (var i = 0; i < chunkWordStarts.length; i++) {
+                    if (chunkWordStarts[i] <= targetWord) idx = i; else break;
+                }
+                var start = chunkWordStarts[idx];
+                var end = (idx + 1 < chunkWordStarts.length) ? chunkWordStarts[idx + 1] : totalWords;
+                var offset = Math.max(0, Math.min(targetWord - start, Math.max(0, end - start - 1)));
+                return { index: idx, offset: offset };
+            }
+
+            function fracFromClientX(x) {
+                var rect = progressEl.getBoundingClientRect();
+                if (!rect.width) return 0;
+                return Math.max(0, Math.min(1, (x - rect.left) / rect.width));
+            }
+
+            function showTooltip(frac) {
+                tooltipEl.textContent = fmtTime(frac * totalSeconds());
+                tooltipEl.style.left = (Math.max(0.04, Math.min(0.96, frac)) * 100) + '%';
+                tooltipEl.style.display = 'block';
+            }
+
+            function previewBar(frac) {
+                frac = Math.max(0, Math.min(1, frac));
+                var pct = (frac * 100) + '%';
+                progressBar.style.width = pct;
+                scrubberEl.style.left = pct;
+                progressEl.setAttribute('aria-valuenow', Math.round(frac * 100));
+                showTooltip(frac);
+                updateTimes(frac);
+            }
+
+            progressEl.addEventListener('pointerdown', function (e) {
+                e.preventDefault();
+                scrubbing = true;
+                progressEl.classList.add('scrubbing');
+                if (progressEl.setPointerCapture) progressEl.setPointerCapture(e.pointerId);
+                previewBar(fracFromClientX(e.clientX));
+            });
+
+            progressEl.addEventListener('pointermove', function (e) {
+                var frac = fracFromClientX(e.clientX);
+                if (scrubbing) previewBar(frac);
+                else showTooltip(frac);
+            });
+
+            progressEl.addEventListener('pointerup', function (e) {
+                if (!scrubbing) return;
+                scrubbing = false;
+                progressEl.classList.remove('scrubbing');
+                tooltipEl.style.display = 'none';
+                startSpeaking(fracFromClientX(e.clientX));
+            });
+
+            progressEl.addEventListener('pointercancel', function () {
+                if (!scrubbing) return;
+                scrubbing = false;
+                progressEl.classList.remove('scrubbing');
+                tooltipEl.style.display = 'none';
+                setBar(lastFrac);
+            });
+
+            progressEl.addEventListener('pointerleave', function () {
+                if (!scrubbing) tooltipEl.style.display = 'none';
+            });
+
+            progressEl.addEventListener('keydown', function (e) {
+                if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') return;
+                e.preventDefault();
+                var frac;
+                if (e.key === 'Home') {
+                    frac = 0;
+                } else if (e.key === 'End') {
+                    frac = 1;
+                } else {
+                    var total = totalSeconds();
+                    var delta = total ? 10 / total : 0;
+                    frac = lastFrac + (e.key === 'ArrowRight' ? delta : -delta);
+                }
+                startSpeaking(frac);
+            });
+
+            /* ---------- file upload ---------- */
+
+            function loadTextFile(f) {
+                var nameIsSupported = /\.(txt|md|text)$/i.test(f.name);
+                var type = (f.type || '').toLowerCase();
+                if (!nameIsSupported && type !== 'text/plain' && type !== 'text/markdown') {
+                    setStatus('Please choose a .txt, .md, or .text file.');
+                    return;
+                }
+                if (speaking || paused) {
+                    setStatus('Stop playback before loading a file.');
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    textEl.value = e.target.result;
+                    updateCounts();
+                    setStatus('Loaded "' + f.name + '" (' + f.size + ' bytes).');
+                };
+                reader.onerror = function () {
+                    setStatus('Could not read the selected file.');
+                };
+                reader.readAsText(f);
+            }
+
+            function bindFileDrop(target) {
+                target.addEventListener('dragover', function (e) {
+                    var dataTransfer = e.dataTransfer;
+                    if (!dataTransfer || (!dataTransfer.files.length &&
+                        Array.prototype.indexOf.call(dataTransfer.types, 'Files') === -1)) return;
+                    e.preventDefault();
+                    dataTransfer.dropEffect = 'copy';
+                    target.classList.add('tts-file-dragging');
+                });
+                target.addEventListener('dragleave', function (e) {
+                    if (!e.relatedTarget || !target.contains(e.relatedTarget)) {
+                        target.classList.remove('tts-file-dragging');
+                    }
+                });
+                target.addEventListener('drop', function (e) {
+                    var dataTransfer = e.dataTransfer;
+                    if (!dataTransfer || (!dataTransfer.files.length &&
+                        Array.prototype.indexOf.call(dataTransfer.types, 'Files') === -1)) return;
+                    e.preventDefault();
+                    target.classList.remove('tts-file-dragging');
+                    if (dataTransfer.files.length > 1) {
+                        setStatus('Drop one text file at a time.');
+                        return;
+                    }
+                    if (dataTransfer.files[0]) loadTextFile(dataTransfer.files[0]);
+                });
+            }
+
+            fileEl.addEventListener('change', function () {
+                var f = fileEl.files[0];
+                if (f) loadTextFile(f);
+            });
+            bindFileDrop(textEl);
+            bindFileDrop(readerEl);
+
+            clearBtn.addEventListener('click', function () {
+                stopSpeaking();
+                textEl.value = '';
+                fileEl.value = '';
+                updateCounts();
+                setStatus('Idle');
+            });
+
+            document.getElementById('tts-paste').addEventListener('click', function () {
+                if (!navigator.clipboard || !navigator.clipboard.readText) {
+                    setStatus('Clipboard access not supported in this browser. Use Ctrl+V in the textbox.');
+                    return;
+                }
+                navigator.clipboard.readText().then(function (text) {
+                    if (!text) {
+                        setStatus('Clipboard is empty.');
+                        return;
+                    }
+                    textEl.value = textEl.value ? textEl.value.replace(/\s*$/, '') + '\n\n' + text : text;
+                    updateCounts();
+                    setStatus('Pasted ' + text.length + ' characters from clipboard.');
+                }).catch(function () {
+                    setStatus('Could not read clipboard. Check browser permission, or use Ctrl+V in the textbox.');
+                });
+            });
+
+            /* ---------- counts ---------- */
+
+            function updateCounts() {
+                var t = textEl.value;
+                var words = t.trim() ? t.trim().split(/\s+/).length : 0;
+                countsEl.textContent = t.length + ' characters, ' + words + ' words';
+                if (!speaking && !paused) {
+                    totalWords = words;
+                    if (!totalWords) setBar(0); else updateProgressBar();
+                }
+            }
+            textEl.addEventListener('input', updateCounts);
+            updateCounts();
+
+            /* ---------- chunking (avoids browser cut-off on long utterances) ---------- */
+
+            function splitIntoChunks(text) {
+                var MAX = 200;
+                var sentences = text.match(/[^.!?\n]+[.!?]*[\s]*/g) || [text];
+                var result = [];
+                var buf = '';
+                sentences.forEach(function (s) {
+                    if ((buf + s).length <= MAX) {
+                        buf += s;
+                    } else {
+                        if (buf) result.push(buf);
+                        while (s.length > MAX) {
+                            var cut = s.lastIndexOf(' ', MAX);
+                            if (cut < 1) cut = MAX;
+                            result.push(s.slice(0, cut));
+                            s = s.slice(cut);
+                        }
+                        buf = s;
+                    }
+                });
+                if (buf.trim()) result.push(buf);
+                return result.filter(function (c) { return c.trim().length > 0; });
+            }
+
+            /* ---------- speech controls ---------- */
+
+            function getVoice() {
+                var voices = synth.getVoices();
+                return voices[parseInt(voiceEl.value, 10)] || null;
+            }
+
+            function setControls(state) {
+                speaking = state === 'speaking';
+                paused = state === 'paused';
+                speakBtn.disabled = state !== 'idle';
+                backBtn.disabled = state === 'idle';
+                pauseBtn.disabled = state !== 'speaking';
+                resumeBtn.disabled = state !== 'paused';
+                stopBtn.disabled = state === 'idle';
+                voiceEl.disabled = state !== 'idle';
+                var reading = speaking || paused;
+                textEl.hidden = reading;
+                readerEl.hidden = !reading;
+                if (state === 'speaking') {
+                    readerEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                if (speaking) startProgressLoop(); else stopProgressLoop();
+            }
+
+            function setStatus(msg) {
+                statusEl.textContent = msg || 'Idle';
+            }
+
+            function speakNext() {
+                if (chunkIndex >= chunks.length) {
+                    setBar(1);
+                    setStatus('Done');
+                    setControls('idle');
+                    chunks = [];
+                    chunkIndex = 0;
+                    chunkWordOffset = 0;
+                    return;
+                }
+                var text = chunks[chunkIndex];
+                var wordStartOffset = 0;
+                if (chunkWordOffset > 0) {
+                    var wordPattern = /\S+/g;
+                    var word;
+                    for (var i = 0; i <= chunkWordOffset; i++) {
+                        word = wordPattern.exec(text);
+                    }
+                    wordStartOffset = word ? word.index : 0;
+                    text = text.slice(wordStartOffset);
+                }
+                var u = new SpeechSynthesisUtterance(text);
+                currentU = u;
+                var v = getVoice();
+                if (v) {
+                    u.voice = v;
+                    u.lang = v.lang;
+                }
+                u.rate = parseFloat(rateEl.value);
+                u.pitch = parseFloat(pitchEl.value);
+                u.volume = parseFloat(volumeEl.value);
+                u.onboundary = function (e) {
+                    if (u !== currentU || typeof e.charIndex !== 'number') return;
+                    var start = chunkStartOffsets[chunkIndex] + wordStartOffset + e.charIndex;
+                    var end = start + (e.charLength || 0);
+                    if (!e.charLength) {
+                        var currentWord = /^\S+/.exec(text.slice(e.charIndex));
+                        if (currentWord) end = start + currentWord[0].length;
+                    }
+                    start = Math.max(0, Math.min(start, textEl.value.length));
+                    end = Math.max(start, Math.min(end, textEl.value.length));
+                    if (end > start) highlightReaderWord(start, end);
+                };
+                u.onend = function () {
+                    if (u !== currentU) return;
+                    chunkIndex++;
+                    chunkWordOffset = 0;
+                    if (speaking && !synth.paused) speakNext();
+                };
+                u.onerror = function (e) {
+                    if (u !== currentU) return;
+                    if (e.error === 'interrupted' || e.error === 'canceled') return;
+                    setStatus('Error');
+                    setControls('idle');
+                };
+                chunkSpeakStart = performance.now();
+                totalPausedMs = 0;
+                setStatus('Speaking');
+                synth.speak(u);
+            }
+
+            function startSpeaking(frac) {
+                setStatus('Starting');
+                var text = textEl.value.trim();
+                if (!text) {
+                    setStatus('Nothing to speak');
+                    return;
+                }
+                setTimeout(function () {
+                    currentU = null;
+                    synth.cancel();
+                    buildChunks();
+                    if (!totalWords) return;
+                    frac = Math.max(0, Math.min(1, frac));
+                    var target = Math.min(totalWords - 1, Math.round(frac * totalWords));
+                    var loc = wordToChunk(target);
+                    chunkIndex = loc.index;
+                    chunkWordOffset = loc.offset;
+                    setControls('speaking');
+                    speakNext();
+                    updateProgressBar();
+                }, 10);
+            }
+
+            function stopSpeaking() {
+                setStatus('Stopping');
+                setTimeout(function () {
+                    synth.cancel();
+                    currentU = null;
+                    setControls('idle');
+                    setStatus('Stopped');
+                    chunks = [];
+                    chunkIndex = 0;
+                    chunkWordOffset = 0;
+                }, 10);
+            }
+
+            speakBtn.addEventListener('click', function () { startSpeaking(0); });
+            stopBtn.addEventListener('click', stopSpeaking);
+
+            backBtn.addEventListener('click', function () {
+                if (!chunks.length) return;
+                updateProgressBar();
+                var wordsPerSec = 2.5 * (parseFloat(rateEl.value) || 1);
+                var currentWord = Math.round(lastFrac * totalWords);
+                var target = Math.max(0, currentWord - Math.round(10 * wordsPerSec));
+                startSpeaking(totalWords ? target / totalWords : 0);
+            });
+
+            pauseBtn.addEventListener('click', function () {
+                setStatus('Pausing');
+                pausedAt = performance.now();
+                synth.pause();
+                setControls('paused');
+                updateProgressBar();
+                setStatus('Paused');
+            });
+
+            resumeBtn.addEventListener('click', function () {
+                setStatus('Resuming');
+                totalPausedMs += performance.now() - pausedAt;
+                synth.resume();
+                setControls('speaking');
+                updateProgressBar();
+                setStatus('Speaking');
+            });
+
+            /* Chrome keeps speaking after tab blur glitches; re-sync on focus */
+            window.addEventListener('focus', function () {
+                if (speaking && !synth.speaking && !synth.paused) {
+                    speakNext();
+                }
+            });
+
+            window.addEventListener('beforeunload', function () {
+                flushSave();
+                synth.cancel();
+            });
+
+            setControls('idle');
+            setStatus('Idle');
+        })();
+    </script>
+
+</body>
+
+</html>
