@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#fff0b5">
     <title>Baby Phone — FreeGroup</title>
     <link rel="icon" href="../favicon.svg" type="image/svg+xml">
@@ -21,13 +21,21 @@
         box-sizing: border-box;
       }
 
+      html {
+        height: 100%;
+        overflow: hidden;
+      }
+
       body {
         display: grid;
-        min-height: 100vh;
-        min-height: 100dvh;
+        height: 100vh;
+        height: 100dvh;
         margin: 0;
         padding: 10px 10px max(10px, env(safe-area-inset-bottom));
         place-items: center;
+        overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: manipulation;
         background:
           radial-gradient(ellipse at 18% 18%, #ffe1de 0, transparent 30%),
           radial-gradient(ellipse at 86% 85%, #cfedeb 0, transparent 34%),
@@ -67,7 +75,7 @@
         position: relative;
         width: min(
           calc(100vw - 20px),
-          calc((100dvh - 104px) * .65),
+          calc((100dvh - 150px) * .65),
           390px
         );
         aspect-ratio: 0.65;
@@ -400,7 +408,7 @@
         .product-phone {
           width: min(
             calc(100vw - 16px),
-            calc((100dvh - 92px) * .65),
+            calc((100dvh - 130px) * .65),
             330px
           );
         }
