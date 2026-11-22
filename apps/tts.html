@@ -325,7 +325,7 @@
         <p class="tts-note">
             Runs 100% offline in your browser using the built-in Web Speech API
             (no uploads, no server, no internet needed after this page loads).
-            Voices come from your operating system &mdash; install more OS voices for more options.
+            Only English voices from your operating system are shown &mdash; install more English OS voices for more options.
         </p>
 
         <div class="tts-panel">
@@ -498,8 +498,11 @@
 
             function populateVoices() {
                 var voices = synth.getVoices();
-                if (!voices.length) {
-                    voiceEl.innerHTML = '<option value="">No voices available yet...</option>';
+                var englishVoices = voices.filter(function (v) {
+                    return v.lang.toLowerCase().indexOf('en') === 0;
+                });
+                if (!englishVoices.length) {
+                    voiceEl.innerHTML = '<option value="">No English voices available yet...</option>';
                     return;
                 }
                 var selected = voiceEl.value;
@@ -510,26 +513,26 @@
                 }
                 if (!selectedURI && saved.voiceURI) selectedURI = saved.voiceURI;
                 voiceEl.innerHTML = '';
-                voices.forEach(function (v, i) {
+                englishVoices.forEach(function (v) {
                     var opt = document.createElement('option');
-                    opt.value = String(i);
+                    opt.value = String(voices.indexOf(v));
                     opt.textContent = v.name + ' (' + v.lang + ')' + (v.default ? ' — default' : '');
                     voiceEl.appendChild(opt);
                 });
                 var restored = false;
                 if (selectedURI) {
-                    for (var k = 0; k < voices.length; k++) {
-                        if (voices[k].voiceURI === selectedURI) {
-                            voiceEl.value = String(k);
+                    for (var k = 0; k < englishVoices.length; k++) {
+                        if (englishVoices[k].voiceURI === selectedURI) {
+                            voiceEl.value = String(voices.indexOf(englishVoices[k]));
                             restored = true;
                             break;
                         }
                     }
                 }
                 if (!restored) {
-                    for (var j = 0; j < voices.length; j++) {
-                        if (voices[j].default && voices[j].lang.indexOf('en') === 0) {
-                            voiceEl.value = String(j);
+                    for (var j = 0; j < englishVoices.length; j++) {
+                        if (englishVoices[j].default) {
+                            voiceEl.value = String(voices.indexOf(englishVoices[j]));
                             break;
                         }
                     }
