@@ -534,145 +534,30 @@
         ["🦊", "Fox says hello!"]
       ];
       const nurseryTunes = [
-        {
-          title: "Twinkle Twinkle",
-          icon: "✨",
-          keyLabel: "Twinkle",
-          notes: [
-            60, 60, 67, 67, 69, 69, 67, null,
-            65, 65, 64, 64, 62, 62, 60, null,
-            67, 67, 65, 65, 64, 64, 62, null,
-            67, 67, 65, 65, 64, 64, 62, null,
-            60, 60, 67, 67, 69, 69, 67, null,
-            65, 65, 64, 64, 62, 62, 60
-          ]
-        },
-        {
-          title: "Mary Had a Little Lamb",
-          icon: "🐑",
-          keyLabel: "Mary",
-          notes: [
-            64, 62, 60, 62, 64, 64, 64, null,
-            62, 62, 62, null, 64, 67, 67, null,
-            64, 62, 60, 62, 64, 64, 64, 64,
-            62, 62, 64, 62, 60
-          ]
-        },
-        {
-          title: "Row Your Boat",
-          icon: "🚣",
-          keyLabel: "Row",
-          notes: [
-            60, 60, 60, 62, 64, null, 64, 62, 64, 65, 67, null,
-            67, 67, 67, 64, 64, 64, 60, 60, 60, null,
-            67, 65, 64, 62, 60
-          ]
-        },
-        {
-          title: "London Bridge",
-          icon: "🌉",
-          keyLabel: "London",
-          notes: [
-            67, 69, 67, 66, 64, 66, 67, null,
-            62, 64, 66, 64, 66, 67, null,
-            67, 69, 67, 66, 64, 66, 67, null,
-            62, 67, 64, 60
-          ]
-        },
-        {
-          title: "Baa Baa Black Sheep",
-          icon: "🐑",
-          keyLabel: "Baa Baa",
-          notes: [
-            60, 60, 67, 67, 69, 69, 67, null,
-            65, 65, 64, 64, 62, 62, 60, null,
-            67, 67, 65, 65, 64, 64, 62, null,
-            67, 67, 65, 65, 64, 64, 62, null,
-            60, 60, 67, 67, 69, 69, 67, null,
-            65, 65, 64, 64, 62, 62, 60
-          ]
-        },
-        {
-          title: "Old MacDonald Had a Farm",
-          icon: "🐮",
-          keyLabel: "MacDonald",
-          notes: [
-            60, 60, 60, 67, 69, 69, 67, null,
-            64, 64, 62, 62, 60, null, null, null,
-            60, 60, 60, 67, 69, 69, 67, null,
-            64, 64, 62, 62, 60
-          ]
-        },
-        {
-          title: "Frere Jacques",
-          icon: "🎶",
-          keyLabel: "Frere",
-          notes: [
-            60, 62, 64, 60, null, 60, 62, 64, 60, null,
-            64, 65, 67, null, 64, 65, 67, null,
-            67, 69, 67, 65, 64, 60, null,
-            67, 69, 67, 65, 64, 60, null,
-            60, 67, 60, null, 60, 67, 60
-          ]
-        },
-        {
-          title: "Three Blind Mice",
-          icon: "🐭",
-          keyLabel: "3 Mice",
-          notes: [
-            64, 62, 60, null, 64, 62, 60, null,
-            67, 67, 64, 64, null, 65, 65, 62, null,
-            64, 62, 60, null, 64, 62, 60, null,
-            67, 67, 64, 64, null, 65, 65, 60
-          ]
-        },
-        {
-          title: "Humpty Dumpty",
-          icon: "🥚",
-          keyLabel: "Humpty",
-          notes: [
-            60, 60, 67, 67, 69, 69, 67, null,
-            65, 65, 64, 64, 62, 62, 60, null,
-            67, 67, 65, 65, 64, 64, 62, null,
-            67, 67, 65, 65, 64, 64, 62, null,
-            60, 60, 67, 67, 69, 69, 67, null,
-            65, 65, 64, 64, 62, 62, 60
-          ]
-        },
+        { title: "Twinkle, Twinkle, Little Star", icon: "✨", keyLabel: "Twinkle", file: "twinkle" },
+        { title: "Mary Had a Little Lamb", icon: "🐑", keyLabel: "Mary", file: "mary" },
+        { title: "London Bridge", icon: "🌉", keyLabel: "London", file: "london" },
+        { title: "Old MacDonald", icon: "🐮", keyLabel: "MacDonald", file: "old-macdonald" },
+        { title: "Baa, Baa, Black Sheep", icon: "🐑", keyLabel: "Baa Baa", file: "baa-baa" },
+        { title: "Humpty Dumpty", icon: "🥚", keyLabel: "Humpty", file: "humpty-dumpty" },
+        { title: "Frere Jacques", icon: "🎶", keyLabel: "Frere", file: "frere-jacques" },
+        { title: "Itsy Bitsy Spider", icon: "🕷️", keyLabel: "Spider", file: "itsy-bitsy-spider" },
+        { title: "Five Little Ducks", icon: "🦆", keyLabel: "5 Ducks", file: "five-little-ducks" }
       ];
       const togetherSong = {
         title: "The More We Get Together",
         icon: "🤝",
-        notes: [
-          67, 67, 69, 67, 72, 71, 69, 67,
-          64, 64, 65, 64, 69, 67, null, null,
-          67, 67, 69, 67, 72, 71, 69, 67,
-          64, 64, 65, 64, 62, null, null, null,
-          67, 67, 69, 67, 72, 71, 69, 67,
-          64, 64, 65, 64, 69, 67
-        ]
+        file: "together"
       };
       const midiFrequency = (note) => 440 * Math.pow(2, (note - 69) / 12);
       const numberMidiNotes = [60, 62, 64, 65, 67, 69, 71, 72, 74];
-      const tuneFiles = {
-        "Twinkle Twinkle": "twinkle",
-        "Mary Had a Little Lamb": "mary",
-        "Row Your Boat": "row",
-        "London Bridge": "london",
-        "Baa Baa Black Sheep": "baa-baa",
-        "Old MacDonald Had a Farm": "old-macdonald",
-        "Frere Jacques": "frere-jacques",
-        "Three Blind Mice": "three-blind-mice",
-        "Humpty Dumpty": "humpty-dumpty",
-        "The More We Get Together": "together"
-      };
       const modes = {
         melody: () => {
           const song = nurseryTunes[Math.floor(Math.random() * nurseryTunes.length)];
-          return { face: "🎼", text: song.title, color: "#f6b6dc", audio: tuneFiles[song.title] };
+          return { face: "🎼", text: song.title, color: "#f6b6dc", audio: song.file };
         },
         abc: () => ({
-          face: "🔤", text: "A, B, C!", color: "#a9d8fa", audio: "abc"
+          face: "🎶", text: "Do Re Mi!", color: "#a9d8fa", audio: "do-re-mi"
         }),
         animals: () => {
           const [face, text, note] = animals[Math.floor(Math.random() * animals.length)];
@@ -702,7 +587,7 @@
         }),
         music: () => {
           const song = nurseryTunes[Math.floor(Math.random() * nurseryTunes.length)];
-          return { face: "🎵", text: song.title, color: "#b5d9fa", audio: tuneFiles[song.title], rate: 1.1 };
+          return { face: "🎵", text: song.title, color: "#b5d9fa", audio: song.file, rate: 1.1 };
         },
         weather: () => {
           const weather = [
@@ -740,7 +625,7 @@
       ];
       const phoneModes = [
         {
-          title: "SONGS",
+          title: "RHYMES",
           keys: nurseryTunes.map((song, index) => ({
             label: song.keyLabel,
             ariaLabel: `Play ${song.title}`,
@@ -800,7 +685,7 @@
 
       function playTune(name, rate = 1) {
         stopTune();
-        activeTune = new Audio(`assets/${name}.wav`);
+        activeTune = new Audio(`assets/rhymes/${name}.wav`);
         activeTune.playbackRate = rate;
         activeTune.play().catch(() => {});
       }
@@ -1073,7 +958,7 @@
         message.hidden = false;
         if (key.type === "song") {
           const song = nurseryTunes[key.index];
-          playResponse({ face: song.icon, text: song.title, color: "#f6b6dc", audio: tuneFiles[song.title] });
+          playResponse({ face: song.icon, text: song.title, color: "#f6b6dc", audio: song.file });
           return;
         }
         if (key.type === "number") {
