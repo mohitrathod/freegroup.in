@@ -133,6 +133,39 @@ a {
   margin: 0 0 25px;
 }
 
+.privacy-policy {
+  margin: 24px 0;
+  color: var(--muted, #68736b);
+  font-size: 13px;
+}
+
+.privacy-policy summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.privacy-policy-content {
+  max-width: 760px;
+  padding-top: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.privacy-policy-content h2 {
+  margin: 18px 0 5px;
+  font-size: 17px;
+  letter-spacing: -0.5px;
+}
+
+.privacy-policy-content p {
+  margin: 0 0 10px;
+}
+
 .status-dot {
   width: 7px;
   height: 7px;
