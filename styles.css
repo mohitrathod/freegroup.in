@@ -40,6 +40,33 @@ a {
   border-bottom: 1px solid var(--line);
 }
 
+.community-stats {
+  display: flex;
+  justify-content: center;
+  gap: clamp(36px, 9vw, 128px);
+  border-bottom: 1px solid var(--line);
+  padding: 23px 7.1%;
+}
+
+.community-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.community-stat-value {
+  font-family: "Manrope", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.community-stat-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .wordmark {
   display: inline-flex;
   align-items: center;
@@ -813,6 +840,23 @@ h2 span {
 }
 
 @media (max-width: 760px) {
+  .community-stats {
+    gap: 28px;
+    padding: 20px 5%;
+  }
+
+  .community-stat {
+    gap: 6px;
+  }
+
+  .community-stat-value {
+    font-size: 19px;
+  }
+
+  .community-stat-label {
+    font-size: 11px;
+  }
+
   .site-header,
   .site-footer {
     padding-right: 6%;

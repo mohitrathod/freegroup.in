@@ -15,6 +15,29 @@
       .app-page p, .app-page li { line-height: 1.7; }
       .app-page ul { padding-left: 1.4rem; }
       .app-meta { color: #6f706b; margin-bottom: 3rem; }
+      .app-gallery { margin: 3rem 0; }
+      .app-gallery h2 { margin-top: 0; }
+      .app-gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      .app-shot { margin: 0; }
+      .app-shot img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid rgba(55, 48, 42, .14);
+        border-radius: 12px;
+        background: #fff;
+      }
+      .app-shot figcaption {
+        margin-top: .55rem;
+        color: #6f706b;
+        font-size: .85rem;
+        text-align: center;
+      }
       .app-divider { margin: 3rem 0; border: 0; border-top: 1px solid rgba(55, 48, 42, .18); }
       .app-back { display: inline-block; margin-top: 3rem; }
     </style>
@@ -31,12 +54,23 @@
       <p class="eyebrow">FreeGroup app</p>
       <h1>Kitchen Timer</h1>
       <p class="app-meta">A simple, offline countdown timer for the kitchen.</p>
+      <p class="app-meta">Google Play link coming soon.</p>
 
       <p>
         Kitchen Timer lets you choose a duration, start or pause a countdown,
         and stop the alarm when time is up. It works locally on your Android
         device and does not require an account.
       </p>
+
+      <section class="app-gallery" aria-labelledby="screenshots-title">
+        <h2 id="screenshots-title">App screenshots</h2>
+        <div class="app-gallery-grid">
+          <figure class="app-shot">
+            <img src="assets/kitchen-timer/14-resume.png" alt="14-minute Kitchen Timer counting down at 13 minutes and 57 seconds" loading="lazy">
+            <figcaption>14-minute timer running</figcaption>
+          </figure>
+        </div>
+      </section>
 
       <hr class="app-divider">
 
