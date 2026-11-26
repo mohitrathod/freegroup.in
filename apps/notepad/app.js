@@ -1,5 +1,6 @@
 (() => {
   const storageKey = "freegroup-shareable-notepad-v1";
+  const saveInterval = 5000;
   const editor = document.getElementById("note-editor");
   const autosaveStatus = document.getElementById("autosave-status");
   const shareButton = document.getElementById("share-button");
@@ -37,6 +38,7 @@
 
   function saveNow() {
     window.clearTimeout(saveTimer);
+    saveTimer = undefined;
 
     try {
       window.localStorage.setItem(storageKey, editor.value);
@@ -110,14 +112,15 @@
     }
   } else {
     autosaveStatus.textContent = restoreLocalNote()
-      ? "Autosaves in this browser"
+      ? "Autosaves in this browser every 5 seconds"
       : "Autosave is unavailable in this browser";
   }
 
   editor.addEventListener("input", () => {
-    autosaveStatus.textContent = "Saving…";
-    window.clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(saveNow, 250);
+    autosaveStatus.textContent = "Saving within 5 seconds…";
+    if (saveTimer !== undefined) return;
+
+    saveTimer = window.setTimeout(saveNow, saveInterval);
   });
 
   shareButton.addEventListener("click", copyCurrentShareUrl);
