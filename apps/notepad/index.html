@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f4ef">
     <title>Shareable Online Notepad — FreeGroup</title>
-    <meta name="description" content="Write a note in your browser, autosave it locally, and share it by link. Anyone with the link can read its note text.">
+    <meta name="description" content="Write and autosave notes in your browser, then share them with a regular link or an optional PIN-protected link.">
     <link rel="canonical" href="https://freegroup.in/apps/notepad/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="FreeGroup">
     <meta property="og:title" content="Shareable Online Notepad — FreeGroup">
-    <meta property="og:description" content="Write a note in your browser, autosave it locally, and share it by link. Anyone with the link can read its note text.">
+    <meta property="og:description" content="Write and autosave notes in your browser, then share them with a regular link or an optional PIN-protected link.">
     <meta property="og:url" content="https://freegroup.in/apps/notepad/">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Shareable Online Notepad — FreeGroup">
-    <meta name="twitter:description" content="Write a note in your browser, autosave it locally, and share it by link. Anyone with the link can read its note text.">
+    <meta name="twitter:description" content="Write and autosave notes in your browser, then share them with a regular link or an optional PIN-protected link.">
     <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="../../styles.css">
     <link rel="stylesheet" href="styles.css">
@@ -57,6 +57,9 @@
             </svg>
             <span>Paste</span>
           </button>
+          <button id="history-button" class="share-icon-button" type="button" aria-expanded="false" aria-controls="history-panel" title="Show recent notes">
+            <span>History</span>
+          </button>
           <button id="share-button" class="share-icon-button" type="button" aria-label="Share note" title="Share note">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="19" cy="5" r="2.5" />
@@ -69,6 +72,23 @@
         </div>
       </div>
 
+      <label class="pin-share-toggle" for="pin-share-toggle">
+        <input id="pin-share-toggle" type="checkbox">
+        <span>
+          <strong>Secure share with a PIN</strong>
+          <small>A 4-digit PIN is easy to guess; use only for casual privacy.</small>
+        </span>
+      </label>
+
+      <section id="history-panel" class="history-panel" aria-labelledby="history-title" hidden>
+        <div class="history-heading">
+          <h2 id="history-title">Recent notes</h2>
+          <p>Choose a previous saved version to restore it.</p>
+        </div>
+        <p id="history-empty" class="history-empty">No previous notes yet.</p>
+        <ul id="history-list" class="history-list"></ul>
+      </section>
+
       <label class="visually-hidden" for="note-editor">Your note</label>
       <textarea
         id="note-editor"
@@ -79,7 +99,7 @@
       ></textarea>
 
       <p id="note-privacy" class="note-privacy">
-        This note is saved in this browser. Share links contain a compressed copy of the note and are not encrypted; anyone with a link can open it.
+        This note and up to three previous saved versions are kept in this browser. Regular share links are not encrypted. PIN-protected links encrypt the note, but a 4-digit PIN is only for casual privacy.
       </p>
 
       <div id="share-toast" class="share-toast" role="status" aria-live="polite" hidden></div>
@@ -93,5 +113,23 @@
       <p>Better, together.</p>
       <span class="copyright">© 2026 FreeGroup</span>
     </footer>
+
+    <dialog id="pin-dialog" class="pin-dialog" aria-labelledby="pin-dialog-title" aria-describedby="pin-dialog-description">
+      <form id="pin-form" class="pin-form">
+        <h2 id="pin-dialog-title">Set a 4-digit PIN</h2>
+        <p id="pin-dialog-description">Share this PIN with the recipient separately from the link.</p>
+        <label for="pin-input">PIN</label>
+        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="4" required>
+        <div id="pin-confirm-row">
+          <label for="pin-confirm">Confirm PIN</label>
+          <input id="pin-confirm" type="password" inputmode="numeric" autocomplete="off" maxlength="4" required>
+        </div>
+        <p id="pin-error" class="pin-error" role="alert"></p>
+        <div class="pin-dialog-actions">
+          <button id="pin-cancel" type="button">Cancel</button>
+          <button class="pin-submit" type="submit">Continue</button>
+        </div>
+      </form>
+    </dialog>
   </body>
 </html>
