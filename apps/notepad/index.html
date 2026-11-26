@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f4ef">
+    <meta name="description" content="Write a note, autosave it in this browser, and share it with a link.">
+    <title>Shareable Notepad — FreeGroup</title>
+    <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    >
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="../../" aria-label="FreeGroup home">
+        <img class="wordmark-mark" src="../../favicon.svg" alt="" aria-hidden="true">
+        <span>freegroup</span>
+      </a>
+      <nav class="header-links" aria-label="Primary navigation">
+        <a class="header-link" href="../../#utilities">Utilities</a>
+        <a class="header-link" href="../../">Home <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <main class="notepad-main">
+      <div class="notepad-heading">
+        <p class="eyebrow"><span class="status-dot"></span> A note that goes with you</p>
+        <h1>Shareable <span>Notepad.</span></h1>
+        <p class="notepad-description">Write something down and open it anywhere with a link.</p>
+      </div>
+
+      <div class="notepad-toolbar">
+        <p id="autosave-status" class="autosave-status" role="status" aria-live="polite">
+          Autosaves in this browser
+        </p>
+        <button id="share-button" class="share-icon-button" type="button" aria-label="Share note" title="Share note">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="19" cy="5" r="2.5" />
+            <circle cx="19" cy="19" r="2.5" />
+            <circle cx="5" cy="12" r="2.5" />
+            <path d="m7.3 10.9 9.4-4.8M7.3 13.1l9.4 4.8" />
+          </svg>
+          <span>Share</span>
+        </button>
+      </div>
+
+      <label class="visually-hidden" for="note-editor">Your note</label>
+      <textarea
+        id="note-editor"
+        class="note-editor"
+        placeholder="Start writing…"
+        spellcheck="true"
+        aria-describedby="autosave-status note-privacy"
+      ></textarea>
+
+      <p id="note-privacy" class="note-privacy">
+        This note is saved in this browser. A share link contains the note text, so anyone with the link can read it.
+      </p>
+
+      <div id="share-toast" class="share-toast" role="status" aria-live="polite" hidden></div>
+    </main>
+
+    <footer class="site-footer">
+      <a class="wordmark footer-wordmark" href="../../" aria-label="FreeGroup home">
+        <img class="wordmark-mark" src="../../favicon.svg" alt="" aria-hidden="true">
+        <span>freegroup</span>
+      </a>
+      <p>Better, together.</p>
+      <span class="copyright">© 2026 FreeGroup</span>
+    </footer>
+  </body>
+</html>
