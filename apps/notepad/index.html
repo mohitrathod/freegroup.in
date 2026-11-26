@@ -49,15 +49,24 @@
         <p id="autosave-status" class="autosave-status" role="status" aria-live="polite">
           Autosaves in this browser every 5 seconds
         </p>
-        <button id="share-button" class="share-icon-button" type="button" aria-label="Share note" title="Share note">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="19" cy="5" r="2.5" />
-            <circle cx="19" cy="19" r="2.5" />
-            <circle cx="5" cy="12" r="2.5" />
-            <path d="m7.3 10.9 9.4-4.8M7.3 13.1l9.4 4.8" />
-          </svg>
-          <span>Share</span>
-        </button>
+        <div class="notepad-actions">
+          <button id="paste-button" class="share-icon-button" type="button" title="Paste from clipboard">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5.5" y="5.5" width="13" height="16" rx="2" fill="none" />
+              <path d="M9 5.5V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M9 11h6M9 15h6M9 19h3" />
+            </svg>
+            <span>Paste</span>
+          </button>
+          <button id="share-button" class="share-icon-button" type="button" aria-label="Share note" title="Share note">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="19" cy="5" r="2.5" />
+              <circle cx="19" cy="19" r="2.5" />
+              <circle cx="5" cy="12" r="2.5" />
+              <path d="m7.3 10.9 9.4-4.8M7.3 13.1l9.4 4.8" />
+            </svg>
+            <span>Share</span>
+          </button>
+        </div>
       </div>
 
       <label class="visually-hidden" for="note-editor">Your note</label>

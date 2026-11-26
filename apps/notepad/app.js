@@ -3,6 +3,7 @@
   const saveInterval = 5000;
   const editor = document.getElementById("note-editor");
   const autosaveStatus = document.getElementById("autosave-status");
+  const pasteButton = document.getElementById("paste-button");
   const shareButton = document.getElementById("share-button");
   const shareToast = document.getElementById("share-toast");
   let saveTimer;
@@ -95,6 +96,28 @@
     }
   }
 
+  async function pasteFromClipboard() {
+    if (!navigator.clipboard?.readText) {
+      showToast("Clipboard access unavailable. Try keyboard paste.");
+      return;
+    }
+
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text === "") {
+        showToast("Clipboard is empty");
+        return;
+      }
+
+      editor.setRangeText(text, editor.selectionStart, editor.selectionEnd, "end");
+      editor.focus();
+      editor.dispatchEvent(new Event("input", { bubbles: true }));
+      showToast("Text pasted");
+    } catch {
+      showToast("Could not read clipboard. Try keyboard paste.");
+    }
+  }
+
   const sharedNote = readSharedNote();
   if (sharedNote.found) {
     clearSharedHash();
@@ -123,6 +146,7 @@
     saveTimer = window.setTimeout(saveNow, saveInterval);
   });
 
+  pasteButton.addEventListener("click", pasteFromClipboard);
   shareButton.addEventListener("click", copyCurrentShareUrl);
   window.addEventListener("pagehide", saveNow);
 })();

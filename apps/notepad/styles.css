@@ -62,6 +62,13 @@
   font-size: 13px;
 }
 
+.notepad-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
 .share-icon-button {
   display: inline-flex;
   min-height: 46px;
@@ -157,7 +164,16 @@
   }
 
   .notepad-toolbar {
-    align-items: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .autosave-status {
+    flex: 1 1 100%;
+  }
+
+  .notepad-actions {
+    margin-left: auto;
   }
 
 }
