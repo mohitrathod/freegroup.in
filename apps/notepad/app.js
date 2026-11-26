@@ -1,4 +1,4 @@
-(() => {
+(async () => {
   const storageKey = "freegroup-shareable-notepad-v1";
   const saveInterval = 5000;
   const editor = document.getElementById("note-editor");
@@ -28,13 +28,60 @@
 
   function readSharedNote() {
     const hash = window.location.hash;
-    if (!hash.startsWith("#text=")) return { found: false };
+    if (!hash) return { found: false };
+    return {
+      found: true,
+      payload: hash.startsWith("#z1=") ? hash.slice(4) : ""
+    };
+  }
 
-    try {
-      return { found: true, text: decodeURIComponent(hash.slice(6)) };
-    } catch {
-      return { found: true, invalid: true };
+  function bytesToBase64Url(bytes) {
+    let binary = "";
+    const chunkSize = 0x8000;
+
+    for (let index = 0; index < bytes.length; index += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
     }
+
+    return btoa(binary)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  }
+
+  function base64UrlToBytes(value) {
+    const base64 = value
+      .replace(/-/g, "+")
+      .replace(/_/g, "/")
+      .padEnd(Math.ceil(value.length / 4) * 4, "=");
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+
+    return bytes;
+  }
+
+  async function transformBytes(bytes, Transform, format) {
+    if (typeof Transform !== "function") {
+      throw new Error("Compression is unavailable in this browser");
+    }
+
+    const stream = new Blob([bytes]).stream().pipeThrough(new Transform(format));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  async function compressNote(text) {
+    const bytes = new TextEncoder().encode(text);
+    return transformBytes(bytes, window.CompressionStream, "gzip");
+  }
+
+  async function decompressNote(payload) {
+    const bytes = base64UrlToBytes(payload);
+    const decompressed = await transformBytes(bytes, window.DecompressionStream, "gzip");
+    return new TextDecoder().decode(decompressed);
   }
 
   function saveNow() {
@@ -51,9 +98,10 @@
     }
   }
 
-  function makeShareUrl() {
+  async function makeShareUrl() {
+    const compressed = await compressNote(editor.value);
     const url = new URL(window.location.href);
-    url.hash = `text=${encodeURIComponent(editor.value)}`;
+    url.hash = `z1=${bytesToBase64Url(compressed)}`;
     return url.toString();
   }
 
@@ -68,7 +116,14 @@
   }
 
   async function copyCurrentShareUrl() {
-    const url = makeShareUrl();
+    let url;
+
+    try {
+      url = await makeShareUrl();
+    } catch {
+      showToast("Could not compress this note for sharing");
+      return;
+    }
 
     try {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
@@ -118,27 +173,6 @@
     }
   }
 
-  const sharedNote = readSharedNote();
-  if (sharedNote.found) {
-    clearSharedHash();
-    if (sharedNote.invalid) {
-      const restored = restoreLocalNote();
-      autosaveStatus.textContent = restored
-        ? "This share link could not be read; restored this browser’s note"
-        : "This share link could not be read; autosave is unavailable";
-    } else {
-      editor.value = sharedNote.text;
-      const saved = saveNow();
-      autosaveStatus.textContent = saved
-        ? "Shared note loaded and saved on this browser"
-        : "Shared note loaded; autosave is unavailable";
-    }
-  } else {
-    autosaveStatus.textContent = restoreLocalNote()
-      ? "Autosaves in this browser every 5 seconds"
-      : "Autosave is unavailable in this browser";
-  }
-
   editor.addEventListener("input", () => {
     autosaveStatus.textContent = "Saving within 5 seconds…";
     if (saveTimer !== undefined) return;
@@ -149,4 +183,31 @@
   pasteButton.addEventListener("click", pasteFromClipboard);
   shareButton.addEventListener("click", copyCurrentShareUrl);
   window.addEventListener("pagehide", saveNow);
+
+  const sharedNote = readSharedNote();
+  if (sharedNote.found) {
+    clearSharedHash();
+    editor.readOnly = true;
+    autosaveStatus.textContent = "Opening shared note…";
+
+    try {
+      editor.value = await decompressNote(sharedNote.payload);
+      const saved = saveNow();
+      autosaveStatus.textContent = saved
+        ? "Shared note opened and saved on this browser"
+        : "Shared note opened; autosave is unavailable";
+    } catch {
+      const restored = restoreLocalNote();
+      autosaveStatus.textContent = restored
+        ? "This share link could not be opened; restored this browser’s note"
+        : "This share link could not be opened; autosave is unavailable";
+    } finally {
+      editor.readOnly = false;
+    }
+  } else {
+    autosaveStatus.textContent = restoreLocalNote()
+      ? "Autosaves in this browser every 5 seconds"
+      : "Autosave is unavailable in this browser";
+  }
+
 })();
