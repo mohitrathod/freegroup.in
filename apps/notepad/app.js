@@ -199,8 +199,8 @@
     } catch {
       const restored = restoreLocalNote();
       autosaveStatus.textContent = restored
-        ? "This share link could not be opened; restored this browser’s note"
-        : "This share link could not be opened; autosave is unavailable";
+        ? "Share link is damaged or unsupported. Restored this browser’s note if available."
+        : "Share link is damaged or unsupported. Autosave is unavailable.";
     } finally {
       editor.readOnly = false;
     }
